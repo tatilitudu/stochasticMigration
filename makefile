@@ -1,5 +1,9 @@
 all: V1EXE
 
+# von Tatjana
+run: V1EXE
+	./V1EXE -S 18 -B 3 -T 4 -d -7 -Y 4 -x 0.0 -M 0 -L 1 -R 500.0 
+
 V1EXE: main.o topology.o mignicheweb.o getargs.o holling2.o evolveweb.o robustness.o gillespie.o
 	g++ -o V1EXE main.o topology.o mignicheweb.o getargs.o holling2.o robustness.o gillespie.o evolveweb.o -lm -lgsl -lgslcblas -Wall
 
