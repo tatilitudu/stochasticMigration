@@ -82,18 +82,14 @@ int main(int argc, char** argv)
 
 	gsl_vector* fixpunkte	= gsl_vector_calloc(9);
 	gsl_vector* migrPara 	= gsl_vector_calloc(5);
- 	gsl_vector* sini  = gsl_vector_calloc(6);
- 	gsl_vector* sfini  = gsl_vector_calloc(6);
- 	gsl_vector* bini  = gsl_vector_calloc(6);
- 	gsl_vector* bfini  = gsl_vector_calloc(6);
- 	gsl_vector* robness  = gsl_vector_calloc(2);
+ 	
 
 	struct foodweb nicheweb	= {NULL, fixpunkte, migrPara, 18, 3, 1, 5, 0, 0, -7., 0.0, 0};		// Reihenfolge: network, fxpkt, S, B, Rnum, Y, T, Tchoice, d, x, M
 	
 	struct resource res = {500.0, 0.0};											// Resource: Größe, Wachstum
 	
-	struct data temp = {sini,sfini,bini,bfini,robness};
-	struct data tempo = {sini,sfini,bini,bfini,robness};
+	
+	
 	
 //--Konsoleneingabe-------------------------------------------------------------------------------------------------------------------------
 	
@@ -114,6 +110,14 @@ int main(int argc, char** argv)
 	struct data patchwise[nicheweb.Y];
 	for(i=0; i<nicheweb.Y; i++)
 	{
+	  gsl_vector* sini  = gsl_vector_calloc(6);
+	  gsl_vector* sfini  = gsl_vector_calloc(6);
+	  gsl_vector* bini  = gsl_vector_calloc(6);
+	  gsl_vector* bfini  = gsl_vector_calloc(6);
+	  gsl_vector* robness  = gsl_vector_calloc(2);
+	  
+	  //struct data tempo = {sini,sfini,bini,bfini,robness};
+	  struct data temp = {sini,sfini,bini,bfini,robness};
 	  patchwise[i] = temp;
 	}
 	
@@ -144,7 +148,7 @@ int main(int argc, char** argv)
 		// for(j=0; j<len; j++)printf("Netzwerk %i: %f", j, gsl_vector_get(nicheweb.network, j));
  	    // gsl_vector_add(populationFIN, EvolveNetwork(nicheweb));		
 												
-		gsl_vector_add(robustness, EvaluateRobustness(populationFIN, nicheweb, patchwise, temp));	// Robustness Analyse
+		gsl_vector_add(robustness, EvaluateRobustness(populationFIN, nicheweb, patchwise));	// Robustness Analyse
 		printf("in Patch 0 ist biomassfin in patchwise in main %f\n", gsl_vector_get(patchwise[0].bfini,0));
 		ymigr += gsl_vector_get(nicheweb.migrPara, 4);
 		
@@ -152,17 +156,17 @@ int main(int argc, char** argv)
 		{
 		    //printf("test %f\n",tempo.sini[0]);
 		    //printf("in Patch %i ist biomassfin in patchwise in main %f\n", l, gsl_vector_get(patchwise[l].bfini,0));
-		    tempo = patchwise[l];
+		    patchwise[l];
 		    for( int j = 0; j < 6; j++)
 		    {
-			gsl_matrix_set(dataProPatch,i, j+(4*6+2)*l, gsl_vector_get(tempo.sini,j));
-			gsl_matrix_set(dataProPatch,i, 6+j+(4*6+2)*l, gsl_vector_get(tempo.sfini,j));
-			gsl_matrix_set(dataProPatch,i, 2*6+j+(4*6+2)*l, gsl_vector_get(tempo.bini,j));
-			gsl_matrix_set(dataProPatch,i, 3*6+j+(4*6+2)*l, gsl_vector_get(tempo.bfini,j));
+			gsl_matrix_set(dataProPatch,i, j+(4*6+2)*l, gsl_vector_get(patchwise[l].sini,j));
+			gsl_matrix_set(dataProPatch,i, 6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].sfini,j));
+			gsl_matrix_set(dataProPatch,i, 2*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bini,j));
+			gsl_matrix_set(dataProPatch,i, 3*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bfini,j));
 			
 		    }
-		    gsl_matrix_set(dataProPatch, i, 4*6+0+(4*6+2)*l, gsl_vector_get(tempo.robness,0));
-		    gsl_matrix_set(dataProPatch, i, 4*6+1+(4*6+2)*l, gsl_vector_get(tempo.robness,1));
+		    gsl_matrix_set(dataProPatch, i, 4*6+0+(4*6+2)*l, gsl_vector_get(patchwise[l].robness,0));
+		    gsl_matrix_set(dataProPatch, i, 4*6+1+(4*6+2)*l, gsl_vector_get(patchwise[l].robness,1));
 		}
 
 		
@@ -279,11 +283,11 @@ int main(int argc, char** argv)
 	free(nicheweb.network);
 	
 	gsl_vector_free(fixpunkte);
-	gsl_vector_free(sini);
-	gsl_vector_free(sfini);
-	gsl_vector_free(bini);
-	gsl_vector_free(bfini);
-	gsl_vector_free(robness);
+// 	gsl_vector_free(sini);
+// 	gsl_vector_free(sfini);
+// 	gsl_vector_free(bini);
+// 	gsl_vector_free(bfini);
+// 	gsl_vector_free(robness);
 	gsl_vector_free(migrPara);
 	gsl_vector_free(populationFIN);
 	gsl_vector_free(robustness);	

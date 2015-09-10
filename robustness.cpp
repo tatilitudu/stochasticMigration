@@ -22,7 +22,7 @@ Diese Funktion wertet ein zeitlich entwickeltes Nischennetz in Bezug auf Robusth
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 
-gsl_vector *EvaluateRobustness(gsl_vector* evolNetwork, struct foodweb nicheweb, struct data patchwise[], struct data temp)		//evolNetwork hat (Rnum+S)*Y*5+3+S Elemente
+gsl_vector *EvaluateRobustness(gsl_vector* evolNetwork, struct foodweb nicheweb, struct data patchwise[])		//evolNetwork hat (Rnum+S)*Y*5+3+S Elemente
 {
   
 	int Y = nicheweb.Y;
