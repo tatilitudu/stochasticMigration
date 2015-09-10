@@ -1,0 +1,140 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
+# Bibliotheken importieren
+import os
+import re
+import glob	
+
+#import prettyplotlib as ppl	
+import numpy as np
+
+# This is "import matplotlib.pyplot as plt" from the prettyplotlib library
+import matplotlib.pyplot as plt
+
+# This is "import matplotlib as mpl" from the prettyplotlib library
+import matplotlib as mpl
+
+# change directory
+os.chdir("/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/Output/Patches_einzeln")
+
+
+
+patch_number = []
+
+# hashs initialisieren
+
+B = {}
+A = {}
+D = {}
+
+# alle files in directory durchgehene
+for filename in glob.glob('*'):
+  print filename
+   
+   # oeffnen zum lesen
+  file = open(filename,'r')
+   
+   # liest Zeilen ein --> erster Aufruf = erste Zeile
+  file.readline()
+   
+   # zweiter Aufruf = liest zweite Zeile ein
+  content = file.readline()
+
+  # Alle Zahlen aus der zweiten Zeile in einem Array speichern --> werden aber so als string gespeichert
+  narr = re.findall(r"[-+]?\d*\.\d+|\d+", content)
+
+  
+  # Zahlen als float in einem Array speichern
+  n = []  
+  for i in narr:
+    try:
+      n.append(float(i))
+    except ValueError,e:
+      print(e)
+      print "Digit: " + i
+      
+  #print n
+  
+  # Länge von n bestimmen
+  l = len(n)
+  
+  #print l
+  
+  # wenn alpha mit in der Datei steht 
+  if(l>10):
+    patch_number_temp = n[0]
+      
+    # zum Aufruf mit hash braucht man strings
+    # umwandeln zu strings
+    patch_number_temp = str(patch_number_temp)
+    
+    #speichern aller Werte vo alpha
+    if not patch_number_temp in patch_number:
+      patch_number.append(patch_number_temp)
+      
+    #print patch_number_temp
+    
+    # wird die patch_number zum ersten Mal aufgerufen muss der hash initialisiert werden
+    if not patch_number_temp in D:
+      B[patch_number_temp] = []
+      A[patch_number_temp] = []
+      D[patch_number_temp] = []
+    
+    # anhängen der Werte an den jeweiligen hash
+    B[patch_number_temp].append(n[27])
+    A[patch_number_temp].append(n[15])  
+    D[patch_number_temp].append(n[7])  
+    print n[7]
+    print n[15]
+    print n[27]
+  
+
+   #l= len(n)
+   
+
+# sortieren der Werte für l nach Größe
+patch_number.sort()
+#patch_number = ['0','1','2','3']
+
+      
+# Farben festlegen
+colors=['b','c','y','m','r','g']
+
+# Laufparameter
+co = 0
+
+### plot für Biomasse
+ax = plt.subplot(1,2,1)
+for j in patch_number:
+  plt.scatter(D[j], B[j],color=colors[co],s=5)
+  co+=1
+plt.legend(('0','1','2','3'),loc='lower right',prop={'size':5})
+
+# Beschriftung fuer plot
+plt.xlabel('Migration Strength')
+plt.ylabel('Consumer Biomass')
+
+
+
+### plot für Speziesanzahl
+fig = plt.subplot(1,2,2)
+co =0
+for j in patch_number:
+  plt.scatter(D[j], A[j],color=colors[co],s=5)
+  co+=1
+plt.legend(('0','1','2','3'),loc='lower right',prop={'size':5})
+
+# Beschriftung fuer plot
+plt.xlabel('Migration Strength')
+plt.ylabel('Number of Species')
+
+#plt.show()
+
+plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.5, hspace=0.3)
+plt.title('linkwise x=0 Y=4 d=0 T=0 L=1 \n')
+os.chdir("/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/Graphen")
+plt.savefig('StochMigr_migrationStrength.png',dpi=300)
+
+

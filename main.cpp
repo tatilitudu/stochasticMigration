@@ -283,11 +283,18 @@ int main(int argc, char** argv)
 	free(nicheweb.network);
 	
 	gsl_vector_free(fixpunkte);
-// 	gsl_vector_free(sini);
-// 	gsl_vector_free(sfini);
-// 	gsl_vector_free(bini);
-// 	gsl_vector_free(bfini);
-// 	gsl_vector_free(robness);
+	
+	for(i=0; i<nicheweb.Y; i++)
+	{
+	  gsl_vector_free(patchwise[i].sini);
+	  gsl_vector_free(patchwise[i].sfini);
+	  gsl_vector_free(patchwise[i].bini);
+	  gsl_vector_free(patchwise[i].bfini);
+	  gsl_vector_free(patchwise[i].robness);
+
+	}
+	
+
 	gsl_vector_free(migrPara);
 	gsl_vector_free(populationFIN);
 	gsl_vector_free(robustness);	
