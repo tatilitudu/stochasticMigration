@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 	gsl_vector_set_zero(migrPara);
 	
 	double ymigr = 0;
-	printf("test");
+	printf("test branch bla");
 	for(i = 0; i < L; i++)																							
 	 { 			
 		printf("\nStarte Durchlauf L = %i\n", i);
