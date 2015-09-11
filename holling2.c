@@ -226,7 +226,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 //-- Migration lösen---------------------------------------------------------------------------------------------------------    
   gsl_vector *ydottest	= gsl_vector_calloc(Y);
   double ydotmigr = gsl_vector_get(nicheweb->migrPara, 4);
-  double test=0;
+
   int count=0,m;
   for(l = 0; l< Y;l++)
   {
@@ -303,28 +303,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
     //if(gsl_vector_get(ydottest,mu)!=0)
     //{
       ydotmigr += gsl_vector_get(ydottest,nu);
-//       if((float)test != (float)ydotmigr)
-//       {
-// 	printf("test %f\n",test);
-// 	printf("tau %f\n",tau);
-// 	printf("ydotmigr %f\n",ydotmigr);
-// 	printf("\nt ist %f\n",t);
-// 	printf("ydottest ist für mu %f\n",gsl_vector_get(ydottest,mu));
-// //       printf("ydottest ist für nu %f\n",gsl_vector_get(ydottest,nu));
-// 	//printf("d2vec ist %f\n",gsl_vector_get(d2vec,0));
-// 	//printf("d3vec ist %f\n",gsl_vector_get(d3vec,0));
-// 	int m;
-// 	for(l = 0; l< Y;l++)
-// 	{
-// 	    for(m=0;m<Y;m++)
-// 	    {
-// 		printf("%f\t",gsl_matrix_get(EDmat,l,m));
-// 	    }
-// 	    printf("\n");
-// 	}
-//       
-//       }
-    test = ydotmigr;
+
     gsl_vector_set(nicheweb->migrPara,4,ydotmigr);
 //     if(ydotmigr !=0)
 //     {

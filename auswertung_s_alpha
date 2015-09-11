@@ -110,12 +110,12 @@ ax = plt.subplot(1,2,1)
 for j in patch_number:
   plt.scatter(D[j], B[j],color=colors[co],s=5)
   co+=1
-plt.legend(('0','1','2','3'),loc='lower right',prop={'size':5})
+plt.legend(('Patch 0','Patch 1','Patch 2','Patch 3'),loc='lower right',prop={'size':5})
 
 # Beschriftung fuer plot
 plt.xlabel('Migration Strength')
 plt.ylabel('Consumer Biomass')
-
+plt.title('linkwise x=0 Y=4 alpha=0.3 T=4 L=20 \n')
 
 
 ### plot für Speziesanzahl
@@ -124,7 +124,7 @@ co =0
 for j in patch_number:
   plt.scatter(D[j], A[j],color=colors[co],s=5)
   co+=1
-plt.legend(('0','1','2','3'),loc='lower right',prop={'size':5})
+plt.legend(('Patch 0','Patch 1','Patch 2','Patch 3'),loc='lower right',prop={'size':5})
 
 # Beschriftung fuer plot
 plt.xlabel('Migration Strength')
@@ -133,7 +133,7 @@ plt.ylabel('Number of Species')
 #plt.show()
 
 plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.5, hspace=0.3)
-plt.title('linkwise x=0 Y=4 d=0 T=0 L=1 \n')
+
 os.chdir("/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/Graphen")
 plt.savefig('StochMigr_migrationStrength.png',dpi=300)
 

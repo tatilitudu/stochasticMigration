@@ -263,9 +263,9 @@ gsl_vector *EvaluateRobustness(gsl_vector* evolNetwork, struct foodweb nicheweb,
 		gsl_vector_set(patchwise[l].robness, 0, datarob[l][0]);
 		gsl_vector_set(patchwise[l].robness, 1, datarob[l][1]);
 		
-		printf("in Patch 0 ist biomassfin in matrix %f\n", databfini[0][0]);
-		printf("in Patch %i ist biomassfin in patchwise %f\n", l, gsl_vector_get(patchwise[l].bfini,0));
-		printf("in Patch 0 ist biomassfin in patchwise %f\n", gsl_vector_get(patchwise[0].bfini,0));
+// 		printf("in Patch 0 ist biomassfin in matrix %f\n", databfini[0][0]);
+// 		printf("in Patch %i ist biomassfin in patchwise %f\n", l, gsl_vector_get(patchwise[l].bfini,0));
+// 		printf("in Patch 0 ist biomassfin in patchwise %f\n", gsl_vector_get(patchwise[0].bfini,0));
 
 		
 		for(i=0; i<6; i++)

@@ -71,8 +71,8 @@ Fixp0	Fixp1	Fixp2	Fixp3	Fixp4	Fixp5	Fixp6	Fixp7
 
 
 //--Verzeichnis für Ergebnisse-------------------------------------------------------
-#define ORT "/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/Test/"
-#define ORT2 "/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/Test/"
+#define ORT "/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/Output/Mittelung/"
+#define ORT2 "/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/Output/Patches_einzeln/"
 //++START++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 int main(int argc, char** argv)
@@ -136,7 +136,9 @@ int main(int argc, char** argv)
 	gsl_vector_set_zero(migrPara);
 	
 	double ymigr = 0;
-	printf("test branch bla 2");
+	double mu = 0;
+	double nu = 0;
+	//printf("test branch bla 2");
 	for(i = 0; i < L; i++)																							
 	 { 			
 		printf("\nStarte Durchlauf L = %i\n", i);
@@ -149,14 +151,16 @@ int main(int argc, char** argv)
  	    // gsl_vector_add(populationFIN, EvolveNetwork(nicheweb));		
 												
 		gsl_vector_add(robustness, EvaluateRobustness(populationFIN, nicheweb, patchwise));	// Robustness Analyse
-		printf("in Patch 0 ist biomassfin in patchwise in main %f\n", gsl_vector_get(patchwise[0].bfini,0));
+		//printf("in Patch 0 ist biomassfin in patchwise in main %f\n", gsl_vector_get(patchwise[0].bfini,0));
 		ymigr += gsl_vector_get(nicheweb.migrPara, 4);
+		mu += gsl_vector_get(nicheweb.migrPara, 1);
+		nu += gsl_vector_get(nicheweb.migrPara, 2);
 		
 		for(int l = 0; l< nicheweb.Y ; l++)
 		{
 		    //printf("test %f\n",tempo.sini[0]);
 		    //printf("in Patch %i ist biomassfin in patchwise in main %f\n", l, gsl_vector_get(patchwise[l].bfini,0));
-		    patchwise[l];
+
 		    for( int j = 0; j < 6; j++)
 		    {
 			gsl_matrix_set(dataProPatch,i, j+(4*6+2)*l, gsl_vector_get(patchwise[l].sini,j));
@@ -168,11 +172,13 @@ int main(int argc, char** argv)
 		    gsl_matrix_set(dataProPatch, i, 4*6+0+(4*6+2)*l, gsl_vector_get(patchwise[l].robness,0));
 		    gsl_matrix_set(dataProPatch, i, 4*6+1+(4*6+2)*l, gsl_vector_get(patchwise[l].robness,1));
 		}
-
+//  		printf("dataProPatch bfini in Durchlauf %i ist %f\n", i, gsl_matrix_get(dataProPatch, i, 3*6));
+//  		printf("dataProPatch bfini in Durchlauf 0 ist %f\n", gsl_matrix_get(dataProPatch, 0, 3*6));
 		
 		printf("\nBeende Durchlauf L = %i\n", i);
 	 }
-	 
+// 	 printf("dataProPatch bfini in Durchlauf 3 ist %f\n", gsl_matrix_get(dataProPatch, 3, 3*6));
+// 	 printf("dataProPatch bfini in Durchlauf 0 ist %f\n", gsl_matrix_get(dataProPatch, 0, 3*6));
 	 for( i = 0; i< L ; i++)
 	 {
 	   gsl_vector_view row = gsl_matrix_row(dataProPatch,i);
@@ -207,7 +213,7 @@ int main(int argc, char** argv)
     if(nicheweb.T==1&&nicheweb.Y==1&&nicheweb.d==0.0)
 
 */
-      fprintf(statistics,"RSize\tS\tB\tM\tx\tY\tdpow\tT\tRob\tPerlok\tPerges\tSi_ges\tSi_TL1\tSi_TL2\tSi_TL3\tSi_TL4\tSi_TL>4\tSf_ges\tSf_TL1\tSf_TL2\tSf_TL3\tSf_TL4\tSf_TL>4\tBi_ges\tBi_TL1\tBi_TL2\tBi_TL3\tBi_TL4\tBi_TL>4\tBf_ges\tBf_TL1\tBf_TL2\tBf_TL3\tBf_TL4\tBf_TL>4\tSh_ges\tSh_TL1\tSh_TL2\tSh_TL3\tSh_TL4\tSh_TL>4\tBh_ges\tBh_TL1\tBh_TL2\tBh_TL3\tBh_TL4\tBh_TL>4\tSs_ges\tSs_TL1\tSs_TL2\tSs_TL3\tSs_TL4\tSs_TL>4\tBs_ges\tBs_TL1\tBs_TL2\tBs_TL3\tBs_TL4\tBs_TL>4\t1mit2\t2mit3\t3mit1\tFixp0\tFixp1\tFixp2\tFixp3\tFixp4\tFixp5\tFixp6\tFixp7\tRob2\tydotMigration\n");
+      fprintf(statistics,"RSize\tS\tB\tM\tx\tY\tdpow\tT\tRob\tPerlok\tPerges\tSi_ges\tSi_TL1\tSi_TL2\tSi_TL3\tSi_TL4\tSi_TL>4\tSf_ges\tSf_TL1\tSf_TL2\tSf_TL3\tSf_TL4\tSf_TL>4\tBi_ges\tBi_TL1\tBi_TL2\tBi_TL3\tBi_TL4\tBi_TL>4\tBf_ges\tBf_TL1\tBf_TL2\tBf_TL3\tBf_TL4\tBf_TL>4\tSh_ges\tSh_TL1\tSh_TL2\tSh_TL3\tSh_TL4\tSh_TL>4\tBh_ges\tBh_TL1\tBh_TL2\tBh_TL3\tBh_TL4\tBh_TL>4\tSs_ges\tSs_TL1\tSs_TL2\tSs_TL3\tSs_TL4\tSs_TL>4\tBs_ges\tBs_TL1\tBs_TL2\tBs_TL3\tBs_TL4\tBs_TL>4\t1mit2\t2mit3\t3mit1\tFixp0\tFixp1\tFixp2\tFixp3\tFixp4\tFixp5\tFixp6\tFixp7\tRob2\tydotMigration\tmu\tnu\n");
 
     fclose(statistics);
     statistics = fopen(aims,"a");												// fopen(*filename, a): schreibt am Ende der Datei weiter		
@@ -233,8 +239,11 @@ int main(int argc, char** argv)
         fprintf(statistics,"%5.3f\t", gsl_vector_get(robustness, i));
       }
 
-      fprintf(statistics,"%7.6f\t", gsl_vector_get(nicheweb.migrPara, 4)/L);
-
+      fprintf(statistics,"%7.6f\t", ymigr/L);
+      fprintf(statistics, "%5.2f\t",mu/L);
+      fprintf(statistics, "%5.2f\t",nu/L);
+    
+    
     fprintf(statistics,"\n");
     fclose(statistics);															// Datei schließen
 
@@ -270,7 +279,12 @@ int main(int argc, char** argv)
 	//tempo = patchwise[l];
  
 	
-	for(i = (0 + (6*4+2)*l); i< ((6*4+2)+(6*4+2)*l); i++)
+	for(i = (0 + (6*2)*l); i< ((6*2)+(6*2)*l); i++)
+	 {
+	   fprintf(statForPatchl,"%5.3f\t",gsl_vector_get(dataProPatchAv,i));      
+	 }
+	 
+	for(i = ((6*2)+(6*2)*l); i< ((6*4+2)+(6*4+2)*l); i++)
 	 {
 	   fprintf(statForPatchl,"%6.5f\t",gsl_vector_get(dataProPatchAv,i));      
 	 }
