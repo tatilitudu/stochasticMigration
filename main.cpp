@@ -130,9 +130,16 @@ int main(int argc, char** argv)
 	gsl_vector *populationFIN 	= gsl_vector_calloc((nicheweb.Rnum + nicheweb.S)*(nicheweb.Y)*5 + (nicheweb.S) + 3);				// Gleiche Länge wie Rückgabe von evolveNetwork
 	gsl_vector *robustness		= gsl_vector_calloc(63);
 
-	gsl_matrix *dataProPatch	= gsl_matrix_calloc(L,(6*4+2)*nicheweb.Y);
-	gsl_vector *dataProPatchAv	= gsl_vector_calloc((6*4+2)*nicheweb.Y);
-	gsl_vector_set_zero(dataProPatchAv);
+	
+	gsl_vector *meanOfData	= gsl_vector_calloc((6*4+2)*nicheweb.Y);
+	gsl_vector *meanOfDatatemp = gsl_vector_calloc((6*4+2)*nicheweb.Y);
+	gsl_vector *meanSquOfData = gsl_vector_calloc((6*4+2)*nicheweb.Y);
+	gsl_vector *meanSquOfDatatemp = gsl_vector_calloc((6*4+2)*nicheweb.Y);
+	gsl_vector *meanOfDataSqu = gsl_vector_calloc((6*4+2)*nicheweb.Y);
+	gsl_vector *standardDeviation = gsl_vector_calloc((6*4+2)*nicheweb.Y);
+	gsl_vector_set_zero(meanOfData);
+	gsl_vector_set_zero(meanSquOfData);
+	gsl_vector_set_zero(meanSquOfDatatemp);
 	gsl_vector_set_zero(migrPara);
 	
 	double ymigr = 0;
@@ -163,38 +170,59 @@ int main(int argc, char** argv)
 
 		    for( int j = 0; j < 6; j++)
 		    {
-			gsl_matrix_set(dataProPatch,i, j+(4*6+2)*l, gsl_vector_get(patchwise[l].sini,j));
-			gsl_matrix_set(dataProPatch,i, 6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].sfini,j));
-			gsl_matrix_set(dataProPatch,i, 2*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bini,j));
-			gsl_matrix_set(dataProPatch,i, 3*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bfini,j));
+			gsl_vector_set(meanOfDatatemp, j+(4*6+2)*l,  gsl_vector_get(patchwise[l].sini,j));
+			gsl_vector_set(meanOfDatatemp, 6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].sfini,j));
+			gsl_vector_set(meanOfDatatemp, 2*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bini,j));
+			gsl_vector_set(meanOfDatatemp, 3*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bfini,j));
 			
 		    }
-		    gsl_matrix_set(dataProPatch, i, 4*6+0+(4*6+2)*l, gsl_vector_get(patchwise[l].robness,0));
-		    gsl_matrix_set(dataProPatch, i, 4*6+1+(4*6+2)*l, gsl_vector_get(patchwise[l].robness,1));
+		    gsl_vector_set(meanOfDatatemp, 4*6+0+(4*6+2)*l,  gsl_vector_get(patchwise[l].robness,0));
+		    gsl_vector_set(meanOfDatatemp, 4*6+1+(4*6+2)*l,  gsl_vector_get(patchwise[l].robness,1));
 		}
-//  		printf("dataProPatch bfini in Durchlauf %i ist %f\n", i, gsl_matrix_get(dataProPatch, i, 3*6));
-//  		printf("dataProPatch bfini in Durchlauf 0 ist %f\n", gsl_matrix_get(dataProPatch, 0, 3*6));
+  		//printf("dataProPatch bfini in Durchlauf %i ist %f\n", i, gsl_vector_get(meanOfData, 3*6));
+		gsl_vector_add(meanOfData, meanOfDatatemp);
+		
+		gsl_vector_memcpy(meanSquOfDatatemp,meanOfDatatemp);
+		gsl_vector_mul(meanSquOfDatatemp,meanOfDatatemp);
+		gsl_vector_add(meanSquOfData, meanSquOfDatatemp);
+  	//	printf("dataProPatch bfini in Durchlauf 0 ist %f\n", gsl_matrix_get(dataProPatch, 0, 3*6));
 		
 		printf("\nBeende Durchlauf L = %i\n", i);
 	 }
 // 	 printf("dataProPatch bfini in Durchlauf 3 ist %f\n", gsl_matrix_get(dataProPatch, 3, 3*6));
 // 	 printf("dataProPatch bfini in Durchlauf 0 ist %f\n", gsl_matrix_get(dataProPatch, 0, 3*6));
-	 for( i = 0; i< L ; i++)
-	 {
-	   gsl_vector_view row = gsl_matrix_row(dataProPatch,i);
-	   gsl_vector_add(dataProPatchAv,&row.vector);
 
-	 }
+
+
+
+//-- Standardabweichung berechnen-------------------------------
+
 
 	 for( i = 0; i< (6*4+2)*nicheweb.Y ; i++)
 	 {
-	    gsl_vector_set(dataProPatchAv,i,gsl_vector_get(dataProPatchAv,i)/L);
+	    gsl_vector_set(meanOfData,i,gsl_vector_get(meanOfData,i)/L);
+	    gsl_vector_set(meanSquOfData,i,gsl_vector_get(meanSquOfData,i)/L);
 	 }
+	 
+	 gsl_vector_memcpy(meanOfDataSqu,meanOfData);
+	 gsl_vector_mul(meanOfDataSqu,meanOfData);
+	 
+	 for( i = 0; i< (6*4+2)*nicheweb.Y ; i++)
+	 {
+	   gsl_vector_set(standardDeviation, i, sqrt(gsl_vector_get(meanSquOfData,i) - gsl_vector_get(meanOfDataSqu,i)));
+	 }
+	 
+// 	 printf("mean ist %f\n",gsl_vector_get(meanOfData,3*6));
+// 	 printf("meanSquOfData ist %f\n",gsl_vector_get(meanSquOfData,3*6));
+// 	 printf("meanOfDataSqu ist %f\n",gsl_vector_get(meanOfDataSqu,3*6));
+// 	 printf("standardDeviation ist %f\n",gsl_vector_get(standardDeviation,3*6));
 
+	 
+	 
 	 
 	printf("L=%i\tspeciesini=%f\tspeciesfinal=%f\n", L, gsl_vector_get(robustness, 3)/L, gsl_vector_get(robustness, 9)/L);
 	
-	//gsl_vector_set(patchwise.sini,0,4);
+
 	
 	
 //--Abspeichern in File-------------------------------------------------------------------------------------	
@@ -280,12 +308,12 @@ int main(int argc, char** argv)
  
 	for(i = (0 + (6*4+2)*l); i< ((6*2)+(6*4+2)*l); i++)
 	 {
-	   fprintf(statForPatchl,"%5.3f\t",gsl_vector_get(dataProPatchAv,i));      
+	   fprintf(statForPatchl,"%5.3f\t",gsl_vector_get(meanOfData,i));      
 	 }
 	 
 	for(i = ((6*2)+(6*4+2)*l); i< ((6*4+2)+(6*4+2)*l); i++)
 	 {
-	   fprintf(statForPatchl,"%6.5f\t",gsl_vector_get(dataProPatchAv,i));      
+	   fprintf(statForPatchl,"%6.5f\t",gsl_vector_get(meanOfData,i));      
 	 }
 	 
 	 printf("\n Es wird Datei für Patch %i erstellt\n\n",l);
@@ -311,8 +339,12 @@ int main(int argc, char** argv)
 	gsl_vector_free(migrPara);
 	gsl_vector_free(populationFIN);
 	gsl_vector_free(robustness);	
-	gsl_vector_free(dataProPatchAv);
-	gsl_matrix_free(dataProPatch);
+	gsl_vector_free(meanOfData);
+	gsl_vector_free(meanOfDatatemp);
+	gsl_vector_free(meanSquOfData);
+	gsl_vector_free(meanOfDataSqu);
+	gsl_vector_free(meanSquOfDatatemp);
+	gsl_vector_free(standardDeviation);
 	
 	return(0);
 
