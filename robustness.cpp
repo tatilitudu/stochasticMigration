@@ -104,7 +104,7 @@ gsl_vector *EvaluateRobustness(gsl_vector* evolNetwork, struct foodweb nicheweb,
   double datarob[Y][2];
   
   
-  double *regiorob		= (double *) calloc(S, sizeof(double));
+  double *regiorob	= (double *) calloc(S, sizeof(double));
   
   double Perlok	= 0;
   double Perges = 0;

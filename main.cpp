@@ -316,6 +316,24 @@ int main(int argc, char** argv)
 	   fprintf(statForPatchl,"%6.5f\t",gsl_vector_get(meanOfData,i));      
 	 }
 	 
+	 fprintf(statForPatchl,"\n");
+	
+	/* Standardabweichung für alle Werte dazuspeichern */
+	for(i=0; i<9; i++)
+	{
+	  fprintf(statForPatchl,"%d\t",0);
+	}
+	  
+	for(i = (0 + (6*4+2)*l); i< ((6*2)+(6*4+2)*l); i++)
+	 {
+	   fprintf(statForPatchl,"%5.3f\t",gsl_vector_get(standardDeviation,i));      
+	 }
+	 
+	for(i = ((6*2)+(6*4+2)*l); i< ((6*4+2)+(6*4+2)*l); i++)
+	 {
+	   fprintf(statForPatchl,"%6.5f\t",gsl_vector_get(standardDeviation,i));      
+	 }
+	 
 	 printf("\n Es wird Datei für Patch %i erstellt\n\n",l);
       }
 	
