@@ -130,7 +130,9 @@ int main(int argc, char** argv)
 	gsl_vector *populationFIN 	= gsl_vector_calloc((nicheweb.Rnum + nicheweb.S)*(nicheweb.Y)*5 + (nicheweb.S) + 3);				// Gleiche Länge wie Rückgabe von evolveNetwork
 	gsl_vector *robustness		= gsl_vector_calloc(63);
 
-	
+	gsl_vector *meanOfDataSquAll = gsl_vector_calloc((6*4+2));
+	gsl_vector *meanSquOfDataAll = gsl_vector_calloc((6*4+2));
+	gsl_vector *standardDeviationAll = gsl_vector_calloc((6*4+2));
 	gsl_vector *meanOfData	= gsl_vector_calloc((6*4+2)*nicheweb.Y);
 	gsl_vector *meanOfDatatemp = gsl_vector_calloc((6*4+2)*nicheweb.Y);
 	gsl_vector *meanSquOfData = gsl_vector_calloc((6*4+2)*nicheweb.Y);
@@ -179,7 +181,7 @@ int main(int argc, char** argv)
 		    gsl_vector_set(meanOfDatatemp, 4*6+0+(4*6+2)*l,  gsl_vector_get(patchwise[l].robness,0));
 		    gsl_vector_set(meanOfDatatemp, 4*6+1+(4*6+2)*l,  gsl_vector_get(patchwise[l].robness,1));
 		}
-  		//printf("dataProPatch bfini in Durchlauf %i ist %f\n", i, gsl_vector_get(meanOfData, 3*6));
+  		printf("meanOfDatatemp in Durchlauf %i ist %f\n", i, gsl_vector_get(meanOfDatatemp, 3*6));
 		gsl_vector_add(meanOfData, meanOfDatatemp);
 		
 		gsl_vector_memcpy(meanSquOfDatatemp,meanOfDatatemp);
@@ -212,12 +214,29 @@ int main(int argc, char** argv)
 	   gsl_vector_set(standardDeviation, i, sqrt(gsl_vector_get(meanSquOfData,i) - gsl_vector_get(meanOfDataSqu,i)));
 	 }
 	 
-// 	 printf("mean ist %f\n",gsl_vector_get(meanOfData,3*6));
-// 	 printf("meanSquOfData ist %f\n",gsl_vector_get(meanSquOfData,3*6));
-// 	 printf("meanOfDataSqu ist %f\n",gsl_vector_get(meanOfDataSqu,3*6));
-// 	 printf("standardDeviation ist %f\n",gsl_vector_get(standardDeviation,3*6));
+ 	 printf("mean ist %f\n",gsl_vector_get(meanOfData,3*6));
+ 	 printf("meanSquOfData ist %f\n",gsl_vector_get(meanSquOfData,3*6));
+ 	 printf("meanOfDataSqu ist %f\n",gsl_vector_get(meanOfDataSqu,3*6));
+ 	 printf("standardDeviation ist %f\n",gsl_vector_get(standardDeviation,3*6));
 
+	 for(int l = 0; l < nicheweb.Y; l++)
+	 {
+	   gsl_vector_view temporalForMean = gsl_vector_subvector(meanOfData, l*(4*6+2), (4*6+2));
+	   gsl_vector *meanOfDataSquAlltemp = &temporalForMean.vector;
+	   gsl_vector_mul(meanOfDataSquAlltemp, meanOfDataSquAlltemp);
+	   gsl_vector_add(meanOfDataSquAll, meanOfDataSquAlltemp);
+	   gsl_vector_view temporalForMeanSqu = gsl_vector_subvector(meanSquOfData, l*(4*6+2), (4*6+2));
+	   gsl_vector *meanSquOfDataAlltemp = &temporalForMeanSqu.vector;
+	   gsl_vector_add(meanSquOfDataAll, meanSquOfDataAlltemp );
+	   
+	   //gsl_vector_free(meanOfDataSquAlltemp);
+	   //gsl_vector_free(meanSquOfDataAlltemp);
+	 }
 	 
+	 for( i = 0; i<(6*4+2); i++)
+	 {
+	   gsl_vector_set(standardDeviationAll, i, sqrt(gsl_vector_get(meanSquOfDataAll,i) - gsl_vector_get(meanOfDataSquAll,i)));
+	 }
 	 
 	 
 	printf("L=%i\tspeciesini=%f\tspeciesfinal=%f\n", L, gsl_vector_get(robustness, 3)/L, gsl_vector_get(robustness, 9)/L);
@@ -273,6 +292,22 @@ int main(int argc, char** argv)
     
     
     fprintf(statistics,"\n");
+    
+//--Standardabweichung hinzufügen-------------------------------------------------------------------------------------------------    
+    for(i=0; i<8; i++)
+    {
+	  fprintf(statistics,"%d\t",0);
+    }
+    
+    fprintf(statistics, "%5.3f\t",gsl_vector_get(standardDeviationAll,6*4));
+    fprintf(statistics, "n.b.\t");
+    fprintf(statistics, "n.b.\t");
+    
+    for(i = 0 ; i< (6*4); i++)
+    {
+      fprintf(statistics, "%5.3f\t",gsl_vector_get(standardDeviationAll,i));
+    }
+    
     fclose(statistics);															// Datei schließen
 
 	printf("Simulation abgespeichert\n");
@@ -363,6 +398,9 @@ int main(int argc, char** argv)
 	gsl_vector_free(meanOfDataSqu);
 	gsl_vector_free(meanSquOfDatatemp);
 	gsl_vector_free(standardDeviation);
+	gsl_vector_free(standardDeviationAll);
+	gsl_vector_free(meanOfDataSquAll);
+	gsl_vector_free(meanSquOfDataAll);
 	
 	return(0);
 
