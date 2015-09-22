@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 	gsl_vector *meanOfDataSqu = gsl_vector_calloc((6*4+2)*nicheweb.Y);
 	gsl_vector *standardDeviation = gsl_vector_calloc((6*4+2)*nicheweb.Y);
 	gsl_vector_set_zero(meanOfData);
-	gsl_vector_set_zero(meanSquOfData);
+	gsl_vector_set_zero(meanSquOfData); 
 	gsl_vector_set_zero(meanSquOfDatatemp);
 	gsl_vector_set_zero(migrPara);
 	
@@ -221,16 +221,22 @@ int main(int argc, char** argv)
 
 	 for(int l = 0; l < nicheweb.Y; l++)
 	 {
+	   gsl_vector *meanOfDataSquAlltemp = gsl_vector_calloc(6*4+2);
+	   gsl_vector *meanSquOfDataAlltemp = gsl_vector_calloc(6*4+2);
+	   
 	   gsl_vector_view temporalForMean = gsl_vector_subvector(meanOfData, l*(4*6+2), (4*6+2));
-	   gsl_vector *meanOfDataSquAlltemp = &temporalForMean.vector;
+	   gsl_vector *meanOfDataSquAll_temp = &temporalForMean.vector;
+	   gsl_vector_memcpy(meanOfDataSquAlltemp,meanOfDataSquAll_temp);
 	   gsl_vector_mul(meanOfDataSquAlltemp, meanOfDataSquAlltemp);
 	   gsl_vector_add(meanOfDataSquAll, meanOfDataSquAlltemp);
+	   
 	   gsl_vector_view temporalForMeanSqu = gsl_vector_subvector(meanSquOfData, l*(4*6+2), (4*6+2));
-	   gsl_vector *meanSquOfDataAlltemp = &temporalForMeanSqu.vector;
+	   gsl_vector *meanSquOfDataAll_temp = &temporalForMeanSqu.vector;
+	   gsl_vector_memcpy(meanSquOfDataAlltemp,meanOfDataSquAll_temp);
 	   gsl_vector_add(meanSquOfDataAll, meanSquOfDataAlltemp );
 	   
-	   //gsl_vector_free(meanOfDataSquAlltemp);
-	   //gsl_vector_free(meanSquOfDataAlltemp);
+	   gsl_vector_free(meanOfDataSquAlltemp);
+	   gsl_vector_free(meanSquOfDataAlltemp);
 	 }
 	 
 	 for( i = 0; i<(6*4+2); i++)
@@ -250,7 +256,7 @@ int main(int argc, char** argv)
     char aims[255] = ORT;			// Ausgewähltes Verzeichnis
     char buffers[100];				// Speicher für Dateiname
 
-    sprintf(buffers,"S%dB%d_M%d_x%1.1fY%dd%2.1fT%dL%dRSize%3.1f.out",nicheweb.S,nicheweb.B,nicheweb.M,nicheweb.x,nicheweb.Y,nicheweb.d,nicheweb.T,L,res.size);		
+    sprintf(buffers,"S%dB%d_M%d_x%1.1fY%dd%2.1fT%dL%dRSize%3.1f.out",nicheweb.S,nicheweb.B,nicheweb.M,nicheweb.x,nicheweb.Y,nicheweb.d,nicheweb.Tchoice,L,res.size);		
 	// sprintf: schreibt eine Zeichenkette in den Speicherbereich von buffers
 
     statistics = fopen(strcat(aims, buffers),"w");											// strcat: klebt zwei Strings aneinander (buffers an aims) -> Pfad+Name
@@ -289,6 +295,7 @@ int main(int argc, char** argv)
       fprintf(statistics,"%7.6f\t", ymigr/L);
       fprintf(statistics, "%5.2f\t",mu/L);
       fprintf(statistics, "%5.2f\t",nu/L);
+      fprintf(statistics, "%d\t",nicheweb.Tchoice);
     
     
     fprintf(statistics,"\n");
