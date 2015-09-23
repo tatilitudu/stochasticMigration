@@ -97,12 +97,12 @@ gsl_vector *EvaluateRobustness(gsl_vector* evolNetwork, struct foodweb nicheweb,
   double *biomassfin	= (double *) calloc(6, sizeof(double));
   double *biomasshubfin	= (double *) calloc(6, sizeof(double));
   double *biomasssatfin	= (double *) calloc(6, sizeof(double));
-  double datasini[Y][6];
-  double datasfini[Y][6];
-  double databini[Y][6];
-  double databfini[Y][6];
-  double datarob[Y][2];
-  
+//   double datasini[Y][6];
+//   double datasfini[Y][6];
+//   double databini[Y][6];
+//   double databfini[Y][6];
+//   double datarob[Y][2];
+//   
   
   double *regiorob	= (double *) calloc(S, sizeof(double));
   
@@ -238,30 +238,30 @@ gsl_vector *EvaluateRobustness(gsl_vector* evolNetwork, struct foodweb nicheweb,
 		//	printf("species ini = %f\n", speciesini[0]);		  
 
 		
-		for(i = 0; i < 6; i++ )
-		{
-		    datasini[l][i] = speciesini[i];
-		    datasfini[l][i] = speciesfin[i];
-		    databini[l][i] =  biomassini[i];
-		    databfini[l][i] = biomassfin[i];
-		}
-		
+// 		for(i = 0; i < 6; i++ )
+// 		{
+// 		    datasini[l][i] = speciesini[i];
+// 		    datasfini[l][i] = speciesfin[i];
+// 		    databini[l][i] =  biomassini[i];
+// 		    databfini[l][i] = biomassfin[i];
+// 		}
+/*		
 
 		datarob[l][0] = Rob;
 		datarob[l][1] = Rob2;
-		
+		*/
 		
 		
 		for(i = 0; i< 6; i++)
 		{
-		    gsl_vector_set(patchwise[l].sini, i, datasini[l][i]);
-		    gsl_vector_set(patchwise[l].sfini, i, datasfini[l][i]);
-		    gsl_vector_set(patchwise[l].bini, i, databini[l][i]);
-		    gsl_vector_set(patchwise[l].bfini, i, databfini[l][i]);
+		    gsl_vector_set(patchwise[l].sini, i, speciesini[i]);
+		    gsl_vector_set(patchwise[l].sfini, i, speciesfin[i]);
+		    gsl_vector_set(patchwise[l].bini, i, biomassini[i]);
+		    gsl_vector_set(patchwise[l].bfini, i, biomassfin[i]);
 		}
 		    
-		gsl_vector_set(patchwise[l].robness, 0, datarob[l][0]);
-		gsl_vector_set(patchwise[l].robness, 1, datarob[l][1]);
+		gsl_vector_set(patchwise[l].robness, 0, Rob);
+		gsl_vector_set(patchwise[l].robness, 1, Rob2);
 		
 // 		printf("in Patch 0 ist biomassfin in matrix %f\n", databfini[0][0]);
 // 		printf("in Patch %i ist biomassfin in patchwise %f\n", l, gsl_vector_get(patchwise[l].bfini,0));
