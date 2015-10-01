@@ -170,6 +170,9 @@ int main(int argc, char** argv)
 	double ymigr = 0;
 	double mu = 0;
 	double nu = 0;
+	double ymigrtemp;
+	double ymigrSqu = 0;
+	double ymigrDeviation;
 	//printf("test branch bla 2");
 	for(i = 0; i < L; i++)																							
 	 { 			
@@ -188,9 +191,14 @@ int main(int argc, char** argv)
 		gsl_vector_add(meanSquOfDataAll,meanSquOfDataAlltemp);
 		
 //--Ausgabewerte----------------------------------------------------------------------------------------------------------		
-		ymigr += gsl_vector_get(nicheweb.migrPara, 4);
-		mu += gsl_vector_get(nicheweb.migrPara, 1);
-		nu += gsl_vector_get(nicheweb.migrPara, 2);
+		ymigrtemp = gsl_vector_get(nicheweb.migrPara, 4);
+		mu = gsl_vector_get(nicheweb.migrPara, 1);
+		nu = gsl_vector_get(nicheweb.migrPara, 2);
+		
+		ymigr += ymigrtemp;
+		
+		ymigrSqu += (ymigrtemp*ymigrtemp); 
+		
 		
 //--Mittelwert und Vorbereitungen für Standardabweichung für die patchweise Ausgabe berechnen--------------------------------		
 		for(int l = 0; l< nicheweb.Y ; l++)
@@ -226,6 +234,10 @@ int main(int argc, char** argv)
 
 
 //-- Standardabweichung berechnen--------------------------------------------------------------------------------------
+
+	ymigrSqu = ymigrSqu/L;
+	ymigr = ymigr/L;
+	ymigrDeviation = sqrt(ymigrSqu - ymigr*ymigr);
 
 //-- Für patchweise Ausgabe-------------------------------------------------------------------------------------------
 	 for( i = 0; i< (6*4+2)*nicheweb.Y ; i++)
@@ -311,7 +323,8 @@ int main(int argc, char** argv)
         fprintf(statistics,"%5.3f\t", gsl_vector_get(robustness, i));
       }
 
-      fprintf(statistics,"%7.6f\t", ymigr/L);
+      /* ymigr wurde oben schon durch L geteilt */
+      fprintf(statistics,"%7.6f\t", ymigr);
       fprintf(statistics, "%5.2f\t",mu/L);
       fprintf(statistics, "%5.2f\t",nu/L);
       fprintf(statistics, "%d\t",nicheweb.Tchoice);
@@ -330,6 +343,11 @@ int main(int argc, char** argv)
     {
       fprintf(statistics, "%5.3f\t",gsl_vector_get(standardDeviationAll,i));
     }
+    
+    fprintf(statistics,"%7.6f\t", ymigrDeviation);
+    fprintf(statistics, "%d\t",0);
+    fprintf(statistics, "%d\t",0);
+    
     
     fclose(statistics);															// Datei schließen
 
