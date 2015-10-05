@@ -18,5 +18,6 @@
 
 double* stochMigration(struct foodweb nicheweb, double*, const double[]);
 int select_patch(gsl_vector*, double, double, int);
+int select_species(struct foodweb nicheweb, double r, int Choice, const double y[]);
 
 #endif
