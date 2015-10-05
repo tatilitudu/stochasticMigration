@@ -31,9 +31,11 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   
   gsl_vector *c	= gsl_vector_calloc(Y);
   gsl_vector *linkCount	= gsl_vector_calloc(Y);
-  double ctemp;
+  double ctemp=0;
   double ctot;
   int l,i;
+  
+  printf("\n");
   
   // Setze c(l) als (Population in Patch l)/(Population in allen Patches) 
   for(l=0;l<Y;l++)
@@ -55,9 +57,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   // Starte Random Number Generator
   srand(SEED);	
   int linkCountTemp, m;
-  //double linkCountTot;
-  
-  //linkCountTot = gsl_vector_get(nicheweb.network,(Rnum+S)*(Rnum+S)+1+Y*Y);
+
   
 	
   gsl_matrix *Dchoice    = SetTopology(Y, Tchoice);	
@@ -91,7 +91,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   
     gsl_vector *a	= gsl_vector_calloc(Y);
     double atot;
-    double r,r1;
+    double r,r1,r2;
   
     gsl_vector_memcpy(a,linkCount);
     gsl_vector_mul(a,c);
@@ -107,6 +107,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
     printf("tau: %f\n",migrationWerte[0]);
   
     r = (double)rand()/INT_MAX;
+    printf("r ist %f\n",r);
   
     printf("Berechne von welchem Patch aus migriert werden soll\t");
     //printf("r: %f\n",r);
@@ -119,6 +120,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
     while(flag != 0)
     {
       r1  = (double)rand()/INT_MAX;
+      printf("r1 ist %f\n",r1);
       migrationWerte[2] = select_patch(a,atot,r1,Y);
       if(migrationWerte[2]!=migrationWerte[1] && gsl_matrix_get(Dchoice,migrationWerte[2],migrationWerte[1])!=0)
       {
@@ -126,8 +128,28 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
       }
     }
     printf("nu: %f\n",migrationWerte[2]);
+    
+    
+    int SpeciesNumber;
+    r2 = (double)rand()/INT_MAX;
+    printf("r2 ist %f\n",r2);
+    int Choice = 0;
+    SpeciesNumber = select_species(nicheweb, r2, Choice, y);
+    migrationWerte[3] = SpeciesNumber;
+    
+    printf("SpeciesNumber: %i\n\n", SpeciesNumber);
+    printf("Population dieser Spezies ist %f\n",y[SpeciesNumber+Rnum]);
+    
+    if(SpeciesNumber>S)
+    {
+      printf("\n\nFehler!!! SpeciesNumber>S \n\n");
+      
+    }
+    
     gsl_vector_free(a);
   }
+  
+
   
   gsl_vector_free(c);
   gsl_vector_free(linkCount);
@@ -145,6 +167,7 @@ int select_patch(gsl_vector* a, double atot, double r, int Y)
   double sum=0;
   
   r = r*atot;
+  printf("r*atot in select_patch ist %f\n",r);
   for(i=0;i<Y;i++)
   {
     sum += gsl_vector_get(a,i);
@@ -158,3 +181,67 @@ int select_patch(gsl_vector* a, double atot, double r, int Y)
 }
 
 
+int select_species(struct foodweb nicheweb, double r, int Choice, const double y[])
+{
+  int S = nicheweb.S;
+  int Y = nicheweb.Y;
+  int Rnum = nicheweb.Rnum;
+  gsl_vector *network = nicheweb.network;
+  gsl_vector_view M_vec = gsl_vector_subvector(network, ((Rnum+S)*(Rnum+S))+1+(Y*Y)+1, (Rnum+S));	// Massenvektor
+  gsl_vector *Mvec = &M_vec.vector;
+  
+  
+  
+  int i;
+  int SpeciesNumber;
+  double sum = 0;
+  double atot;
+  gsl_vector *a = gsl_vector_calloc(S);
+  gsl_vector *c = gsl_vector_calloc(S);
+  
+  
+  printf("Berechne, welche Spezies migrieren darf\t\t");
+  
+  for(i = 0; i< S ;i++)
+  {
+    gsl_vector_set(a,i,y[Rnum+i]);
+  }
+  printf("Eintrag 5 von y ist %f\n", y[5]);
+  // Nur Abhängigkeit, wie groß Population ist == 0; zusätzlich Massen == 1
+  if(Choice == 0)
+  {
+    atot = gsl_blas_dasum(a);
+  }
+  else if(Choice == 1)
+  {
+    double ctot;
+    for(i = 0; i < S; i++ )
+    {
+      gsl_vector_set(c, i , gsl_vector_get(Mvec,i+Rnum));
+    }
+    ctot = gsl_blas_dasum(c);
+    gsl_vector_scale(c,1/ctot);
+    gsl_vector_mul(a,c);
+    atot = gsl_blas_dasum(a);
+  }
+    
+  // Abhängigkeit
+  
+  printf("atot ist %f\n",atot);
+  
+  r = r*atot;
+
+  printf("r*atot ist %f\n",r);
+  
+  for(i=Rnum;i<S+Rnum;i++)
+  {
+    sum += gsl_vector_get(a,i);
+    if( r < sum )
+    {
+      SpeciesNumber = i;
+      break;
+    }
+  }
+  return SpeciesNumber;
+  
+}

@@ -83,6 +83,7 @@ gsl_vector* EvolveNetwork(struct foodweb nicheweb,  gsl_rng* rng1, const gsl_rng
 		}
 	  }
 
+	  printf("Eintrag 5 von y ist am Anfang %f\n",y[5]);
 	printf("Spezies Anfangspopulationen erzeugt\n");
 
   	gsl_vector_view y_vec = gsl_vector_view_array(y, (Rnum+S)*Y);		
@@ -170,20 +171,23 @@ Er wird definiert über vier Größen
 
 	//printf("t=%f\n", t);	
 
-  double migrationWerte[3];
+  double migrationWerte[4];
   double tau=0, mu=0, nu=0;
   double tlast = tend1;
+  int SpeciesNumber;
   if(Y>1)
   {
     stochMigration(nicheweb, migrationWerte, y);
     tau = migrationWerte[0];
     mu = migrationWerte[1];
     nu = migrationWerte[2];
+    SpeciesNumber = migrationWerte[3];
   }
   else
   {
     printf("Es gibt nur ein Patch, sodass keine Migration stattfinden kann\n");
   }
+  printf("SpeciesNumber in evolveweb: %i\n\n", SpeciesNumber);
   //printf("tau ist: %f\n",tau);
   //printf("mu ist: %f\n",mu);
   //printf("nu ist: %f\n",nu);
