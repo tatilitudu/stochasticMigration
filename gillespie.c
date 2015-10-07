@@ -107,7 +107,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
     printf("tau: %f\n",migrationWerte[0]);
   
     r = (double)rand()/INT_MAX;
-    printf("r ist %f\n",r);
+    //printf("r ist %f\n",r);
   
     printf("Berechne von welchem Patch aus migriert werden soll\t");
     //printf("r: %f\n",r);
@@ -120,7 +120,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
     while(flag != 0)
     {
       r1  = (double)rand()/INT_MAX;
-      printf("r1 ist %f\n",r1);
+      //printf("r1 ist %f\n",r1);
       migrationWerte[2] = select_patch(a,atot,r1,Y);
       if(migrationWerte[2]!=migrationWerte[1] && gsl_matrix_get(Dchoice,migrationWerte[2],migrationWerte[1])!=0)
       {
@@ -132,13 +132,13 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
     
     int SpeciesNumber;
     r2 = (double)rand()/INT_MAX;
-    printf("r2 ist %f\n",r2);
+    //printf("r2 ist %f\n",r2);
     int Choice = 0;
     SpeciesNumber = select_species(nicheweb, r2, Choice, y);
     migrationWerte[3] = SpeciesNumber;
     
     printf("SpeciesNumber: %i\n\n", SpeciesNumber);
-    printf("Population dieser Spezies ist %f\n",y[SpeciesNumber+Rnum]);
+    //printf("Population dieser Spezies ist %f\n",y[SpeciesNumber+Rnum]);
     
     if(SpeciesNumber>S)
     {
@@ -167,7 +167,7 @@ int select_patch(gsl_vector* a, double atot, double r, int Y)
   double sum=0;
   
   r = r*atot;
-  printf("r*atot in select_patch ist %f\n",r);
+  //printf("r*atot in select_patch ist %f\n",r);
   for(i=0;i<Y;i++)
   {
     sum += gsl_vector_get(a,i);
@@ -200,13 +200,13 @@ int select_species(struct foodweb nicheweb, double r, int Choice, const double y
   gsl_vector *c = gsl_vector_calloc(S);
   
   
-  printf("Berechne, welche Spezies migrieren darf\t\t");
+  printf("Berechne, welche Spezies migrieren darf\t\t\t");
   
   for(i = 0; i< S ;i++)
   {
     gsl_vector_set(a,i,y[Rnum+i]);
   }
-  printf("Eintrag 5 von y ist %f\n", y[5]);
+  //printf("Eintrag 5 von y ist %f\n", y[5]);
   // Nur Abhängigkeit, wie groß Population ist == 0; zusätzlich Massen == 1
   if(Choice == 0)
   {
@@ -227,13 +227,13 @@ int select_species(struct foodweb nicheweb, double r, int Choice, const double y
     
   // Abhängigkeit
   
-  printf("atot ist %f\n",atot);
+  //printf("atot ist %f\n",atot);
   
   r = r*atot;
 
-  printf("r*atot ist %f\n",r);
+  //printf("r*atot ist %f\n",r);
   
-  for(i=Rnum;i<S+Rnum;i++)
+  for(i=0;i<S;i++)
   {
     sum += gsl_vector_get(a,i);
     if( r < sum )

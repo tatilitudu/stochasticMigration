@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 //--Foodweb Struktur mit Standardwerten aufstellen------------------------------------------------------------------------------------------
 
 	gsl_vector* fixpunkte	= gsl_vector_calloc(9);
-	gsl_vector* migrPara 	= gsl_vector_calloc(5);
+	gsl_vector* migrPara 	= gsl_vector_calloc(6);
  	
 
 	struct foodweb nicheweb	= {NULL, fixpunkte, migrPara, 18, 3, 1, 5, 0, 0, -7., 0.0, 0};		// Reihenfolge: network, fxpkt, S, B, Rnum, Y, T, Tchoice, d, x, M
@@ -167,6 +167,8 @@ int main(int argc, char** argv)
 	gsl_vector_set_zero(meanOfDataSquAll);
 	gsl_vector_set_zero(meanSquOfDataAll);
 	
+	double SpeciesNumber[L]; 
+	
 	double ymigr = 0;
 	double mu = 0;
 	double nu = 0;
@@ -200,10 +202,11 @@ int main(int argc, char** argv)
 		gsl_vector_add(meanSquOfDataAll,meanSquOfDataAlltemp);
 		
 //--Ausgabewerte----------------------------------------------------------------------------------------------------------		
-		ymigrtemp = gsl_vector_get(nicheweb.migrPara, 4);
+		ymigrtemp = gsl_vector_get(nicheweb.migrPara, 5);
 		mu += gsl_vector_get(nicheweb.migrPara, 1);
 		nu += gsl_vector_get(nicheweb.migrPara, 2);
-		
+		SpeciesNumber[i] = gsl_vector_get(nicheweb.migrPara,3);
+		//printf("SpeciesNumber ist %f\n",SpeciesNumber[i]);
 		ymigr += ymigrtemp;
 		
 		ymigrSqu += (ymigrtemp*ymigrtemp); 
@@ -421,7 +424,31 @@ int main(int argc, char** argv)
 	 
 	 printf("\n Es wird Datei für Patch %i erstellt\n",l);
       }
-      printf("Simulation abgespeichert\n");
+      
+//--Ausgewählte Spezies rausschreiben, die migrieren darf---------------------------------------------------------------------------
+	FILE *SpeciesNumbers;
+	char aims3[255] = ORT;
+	char buffers3[100];
+	
+	printf("\n Es wird Ausgabe erstellt, welche Spezies zum Migrieren ausgewählt wurden\n");
+	
+	sprintf(buffers3,"SpeciesNumbersS%dB%d_M%d_x%1.1fY%dd%2.1fT%dL%dRSize%5.1f.out",nicheweb.S,nicheweb.B,nicheweb.M,nicheweb.x,nicheweb.Y,nicheweb.d,nicheweb.T,L,res.size);
+      
+	// sprintf: schreibt eine Zeichenkette in den Speicherbereich von buffers
+
+	SpeciesNumbers = fopen(strcat(aims3, buffers3),"w");											// strcat: klebt zwei Strings aneinander (buffers an aims) -> Pfad+Name
+	// fopen(*filename, "w") erzeugt eine neue Datei in die geschrieben werden kann. Existiert schon eine Datei dieses Namens wird diese überschrieben.
+
+	for(i = 0; i<L; i++)
+	{
+	  fprintf(SpeciesNumbers,"%5.1f\t",SpeciesNumber[i]);
+	}
+	
+	fprintf(SpeciesNumbers,"\n");
+	fclose(SpeciesNumbers);
+	
+	
+      printf("\nSimulation abgespeichert\n\n");
 	
 //--free----------------------------------------------------------------------------------------------------------------  
 	free(nicheweb.network);

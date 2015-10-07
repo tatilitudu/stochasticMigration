@@ -54,11 +54,14 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	double dij 	= pow(10, d);
 
 	double tau,nu,mu;
+	int SpeciesNumber;
 	tau = gsl_vector_get(nicheweb->migrPara,0);
 	mu = gsl_vector_get(nicheweb->migrPara,1);
 	nu = gsl_vector_get(nicheweb->migrPara,2);
-	double tlast = gsl_vector_get(nicheweb->migrPara,3);
+	SpeciesNumber = gsl_vector_get(nicheweb->migrPara,3);
+	double tlast = gsl_vector_get(nicheweb->migrPara,4);
 	
+ 	//printf("SpeciesNumber %i\n", SpeciesNumber);
 	//printf("t oben %f\n",t);
 		//int len	 = (Rnum+S)*(Rnum+S)+2+Y*Y+(Rnum+S)+S;
 	
@@ -84,7 +87,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 // 	}
 	if( (t > tau) && (tlast < tau))
 	{	
-	    gsl_vector_set(nicheweb->migrPara,3,t);
+	    gsl_vector_set(nicheweb->migrPara,4,t);
 	    printf("Setze Link für gewünschte Migration\n");
 	    //printf("t oben %f\n",t);
 	    gsl_matrix_set(EDmat, nu, mu, 1.);
@@ -225,7 +228,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
   
 //-- Migration lösen---------------------------------------------------------------------------------------------------------    
   gsl_vector *ydottest	= gsl_vector_calloc(Y);
-  double ydotmigr = gsl_vector_get(nicheweb->migrPara, 4);
+  double ydotmigr = gsl_vector_get(nicheweb->migrPara, 5);
 
   int count=0,m;
   for(l = 0; l< Y;l++)
@@ -249,27 +252,31 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 //      printf("\n");
 //      }
 //   }
-  
+  double max = gsl_matrix_max(EDmat); 
   for(l = Rnum; l< Rnum+S; l++)								// start of migration solving
   {
-    gsl_matrix_set_zero(ADgsl);								// reset gsl objects for every patch
-    gsl_matrix_set_zero(Dmat);    
-    gsl_vector_set_zero(d1vec);
-    gsl_vector_set_zero(d2vec);
-    gsl_vector_set_zero(d3vec);
-    gsl_vector_set_zero(ydottest);
+    if(l == SpeciesNumber+Rnum && max !=0)
+    {
+      //printf("max ist %f\n",max);
+      //printf("l ist %i\n",l);
+      gsl_matrix_set_zero(ADgsl);								// reset gsl objects for every patch
+      gsl_matrix_set_zero(Dmat);    
+      gsl_vector_set_zero(d1vec);
+      gsl_vector_set_zero(d2vec);
+      gsl_vector_set_zero(d3vec);
+      gsl_vector_set_zero(ydottest);
 
 	// Untervektor von yfddot (enthält ydot[]) mit offset l (Rnum...Rnum+S) und Abstand zwischen den Elementen (stride) von Rnum+S.
 	// Dies ergibt gerade die Größe einer Spezies in jedem Patch in einem Vektor
-    gsl_vector_view dydot_vec = gsl_vector_subvector_with_stride(yfddotvec, l, (Rnum+S), Y);	// ydot[]		
-    gsl_vector *dydotvec	  = &dydot_vec.vector;
+      gsl_vector_view dydot_vec = gsl_vector_subvector_with_stride(yfddotvec, l, (Rnum+S), Y);	// ydot[]		
+      gsl_vector *dydotvec	  = &dydot_vec.vector;
 
-    gsl_vector_view dy_vec	  = gsl_vector_subvector_with_stride(yfdvec, l, (Rnum+S), Y);			// Startgrößen der Spezies pro Patch
-    gsl_vector *dyvec		  = &dy_vec.vector;
+      gsl_vector_view dy_vec	  = gsl_vector_subvector_with_stride(yfdvec, l, (Rnum+S), Y);			// Startgrößen der Spezies pro Patch
+      gsl_vector *dyvec		  = &dy_vec.vector;
           
-    gsl_matrix_memcpy(ADgsl, EDmat);		// ADgsl = D
+      gsl_matrix_memcpy(ADgsl, EDmat);		// ADgsl = D
     
-    if(nicheweb->M == 1)				// umschalten w: patchwise (Abwanderung aus jedem Patch gleich), sonst linkwise (Abwanderung pro link gleich) 
+      if(nicheweb->M == 1)				// umschalten w: patchwise (Abwanderung aus jedem Patch gleich), sonst linkwise (Abwanderung pro link gleich) 
 	   {
 		  for(i=0; i<Y; i++)
 		   {
@@ -283,39 +290,40 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 		    }
 	   }
 
-    gsl_matrix_memcpy(Dmat, EDmat);					// Dmat = D
-    gsl_matrix_scale(Dmat, dij);					// Dmat(i,j) = d(i,j) (Migrationsstärke)
-    gsl_matrix_mul_elements(Dmat, ADgsl);				// Dmat(i,j) = d(i,j)*xi(i,j)   (skalierte und normierte Migrationsmatrix)
+      gsl_matrix_memcpy(Dmat, EDmat);					// Dmat = D
+      gsl_matrix_scale(Dmat, dij);					// Dmat(i,j) = d(i,j) (Migrationsstärke)
+      gsl_matrix_mul_elements(Dmat, ADgsl);				// Dmat(i,j) = d(i,j)*xi(i,j)   (skalierte und normierte Migrationsmatrix)
      
-    gsl_vector_set_all(d1vec, 1/gsl_vector_get(Mvec, l));		// d1(i)= m(l)^0.25
-    gsl_vector_mul(d1vec, dyvec);					// d1(i)= m(l)^0.25*y(i)
-    gsl_blas_dgemv(CblasNoTrans, 1, Dmat, d1vec, 0, d2vec);		// d2(i)= Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(j)
+      gsl_vector_set_all(d1vec, 1/gsl_vector_get(Mvec, l));		// d1(i)= m(l)^0.25
+      gsl_vector_mul(d1vec, dyvec);					// d1(i)= m(l)^0.25*y(i)
+      gsl_blas_dgemv(CblasNoTrans, 1, Dmat, d1vec, 0, d2vec);		// d2(i)= Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(j)
     
-    gsl_vector_set_all(d1vec, 1);					// d1(i)= 1
-    gsl_blas_dgemv(CblasTrans, 1, Dmat, d1vec, 0, d3vec);		// d3(i)= Sum_j d(i,j)*xi(i,j)
-    gsl_vector_scale(d3vec, 1/gsl_vector_get(Mvec,l));			// d3(i)= Sum_j d(i,j)*xi(i,j)*m(l)^0.25
-    gsl_vector_mul(d3vec, dyvec);					// d3(i)= Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(i)
+      gsl_vector_set_all(d1vec, 1);					// d1(i)= 1
+      gsl_blas_dgemv(CblasTrans, 1, Dmat, d1vec, 0, d3vec);		// d3(i)= Sum_j d(i,j)*xi(i,j)
+      gsl_vector_scale(d3vec, 1/gsl_vector_get(Mvec,l));			// d3(i)= Sum_j d(i,j)*xi(i,j)*m(l)^0.25
+      gsl_vector_mul(d3vec, dyvec);					// d3(i)= Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(i)
     
-    gsl_vector_add(ydottest,d2vec);
-    gsl_vector_sub(ydottest,d3vec);
-    //printf("d2vec ist %f\n",gsl_vector_get(d2vec,0));
-    //printf("d3vec ist %f\n",gsl_vector_get(d3vec,0));
-    //if(gsl_vector_get(ydottest,mu)!=0)
-    //{
-      ydotmigr += gsl_vector_get(ydottest,nu);
+      gsl_vector_add(ydottest,d2vec);
+      gsl_vector_sub(ydottest,d3vec);
+      //printf("d2vec ist %f\n",gsl_vector_get(d2vec,0));
+      //printf("d3vec ist %f\n",gsl_vector_get(d3vec,0));
+      //if(gsl_vector_get(ydottest,mu)!=0)
+      //{
+	ydotmigr += gsl_vector_get(ydottest,nu);
 
-    gsl_vector_set(nicheweb->migrPara,4,ydotmigr);
+      gsl_vector_set(nicheweb->migrPara,5,ydotmigr);
 //     if(ydotmigr !=0)
 //     {
 //       printf("ydottest aufaddiert ist %f\n",ydotmigr);
-//       printf("ydottest aufaddiert ist %f\n",gsl_vector_get(nicheweb->migrPara,4));
+//       printf("ydottest aufaddiert ist %f\n",gsl_vector_get(nicheweb->migrPara,5));
 //     }
     
     
     
-    gsl_vector_add(dydotvec, d2vec);				// 
-    gsl_vector_sub(dydotvec, d3vec);				// Ergebnis in dydotvec (also ydot[]) = Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(j) - Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(i) 
-  }	// Patch i gewinnt das was aus allen j Patches zuwandert und verliert was von i auswandert
+      gsl_vector_add(dydotvec, d2vec);				// 
+      gsl_vector_sub(dydotvec, d3vec);				// Ergebnis in dydotvec (also ydot[]) = Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(j) - Sum_j d(i,j)*xi(i,j)*m(l)^0.25*y(i) 
+      }
+  }// Patch i gewinnt das was aus allen j Patches zuwandert und verliert was von i auswandert
   //printf("ydot ist %f\n",gsl_vector_get(ydottest,0));
 
 	//printf("\ncheckpoint Holling2 V\n");

@@ -83,7 +83,7 @@ gsl_vector* EvolveNetwork(struct foodweb nicheweb,  gsl_rng* rng1, const gsl_rng
 		}
 	  }
 
-	  printf("Eintrag 5 von y ist am Anfang %f\n",y[5]);
+	 // printf("Eintrag 5 von y ist am Anfang %f\n",y[5]);
 	printf("Spezies Anfangspopulationen erzeugt\n");
 
   	gsl_vector_view y_vec = gsl_vector_view_array(y, (Rnum+S)*Y);		
@@ -187,19 +187,21 @@ Er wird definiert über vier Größen
   {
     printf("Es gibt nur ein Patch, sodass keine Migration stattfinden kann\n");
   }
-  printf("SpeciesNumber in evolveweb: %i\n\n", SpeciesNumber);
+  //printf("SpeciesNumber in evolveweb: %i\n\n", SpeciesNumber);
   //printf("tau ist: %f\n",tau);
   //printf("mu ist: %f\n",mu);
   //printf("nu ist: %f\n",nu);
   gsl_vector_set(nicheweb.migrPara,0,(tau+tend1));
   gsl_vector_set(nicheweb.migrPara,1,mu);
   gsl_vector_set(nicheweb.migrPara,2,nu);
+  gsl_vector_set(nicheweb.migrPara,3,SpeciesNumber);
   gsl_vector_set(nicheweb.migrPara,4,0);
 
   
   while(t < tend2)
   {
-    gsl_vector_set(nicheweb.migrPara,3,tlast);	
+    gsl_vector_set(nicheweb.migrPara,4,tlast);	
+    //printf("SpeciesNumber %f\n", gsl_vector_get(nicheweb.migrPara,3));
     //printf("t=%f\n", t);
     countsteps++;
     //printf("y=%f\n", y[1]);
@@ -236,7 +238,7 @@ Er wird definiert über vier Größen
    
   }
   
-  printf("Es migrieren %f \n",gsl_vector_get(nicheweb.migrPara,4));
+  printf("Es migrieren %f \n",gsl_vector_get(nicheweb.migrPara,5));
 //--Ergebnis zusammen fassen--------------------------------------------------------------------------------------------------------------------   
 
   for(i=0; i<(Rnum+S)*Y; i++)
