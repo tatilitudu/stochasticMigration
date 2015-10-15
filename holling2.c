@@ -29,6 +29,7 @@
 #include <gsl/gsl_odeiv.h>				// differential equation solver
 #include <gsl/gsl_errno.h>				// errorhandler
 
+
 int Holling2(double t, const double y[], double ydot[], void *params){
 
 	double alpha	= 0.3;						// respiration
@@ -51,15 +52,23 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	int Y 	 	= nicheweb->Y;
 	int Rnum	= nicheweb->Rnum;
 	double d  	= nicheweb->d;
+	int Z 		= nicheweb->Z;
 	double dij 	= pow(10, d);
 
-	double tau,nu,mu;
+	double nu,mu;
+	gsl_vector *tau = gsl_vector_calloc(Z);
 	int SpeciesNumber;
-	tau = gsl_vector_get(nicheweb->migrPara,0);
-	mu = gsl_vector_get(nicheweb->migrPara,1);
-	nu = gsl_vector_get(nicheweb->migrPara,2);
-	SpeciesNumber = gsl_vector_get(nicheweb->migrPara,3);
-	double tlast = gsl_vector_get(nicheweb->migrPara,4);
+	
+	for(i = 0; i <Z; i++)
+	{
+	  gsl_vector_set(tau, i, gsl_vector_get(nicheweb->migrPara,i));
+	}
+	
+	mu = gsl_vector_get(nicheweb->migrPara,Z);
+	nu = gsl_vector_get(nicheweb->migrPara,Z+1);
+	SpeciesNumber = gsl_vector_get(nicheweb->migrPara,Z+2);
+	double tlast = gsl_vector_get(nicheweb->migrPara,Z+3);
+	int migrationEventNumber = gsl_vector_get(nicheweb->migrPara, Z+5);
 	
  	//printf("SpeciesNumber %i\n", SpeciesNumber);
 	//printf("t oben %f\n",t);
@@ -79,15 +88,16 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	
 	
  //-- verändere zu dem gewünschten Zeitpunkt Migrationsmatrix	
-// 	if((t-0.1)<tau)
-// 	{
-// 	  printf("tau %f\n",tau);
-// 	  printf("t %f\n",t);
-// 	  printf("tlast %f\n",tlast);
-// 	}
-	if( (t > tau) && (tlast < tau))
+
+	double tautemp;
+	
+	tautemp = gsl_vector_get(tau, migrationEventNumber);
+	
+	if( (t > tautemp) && (tlast < tautemp))
 	{	
-	    gsl_vector_set(nicheweb->migrPara,4,t);
+	    gsl_vector_set(nicheweb->migrPara,Z+3,t);
+	    migrationEventNumber++;
+	    gsl_vector_set(nicheweb->migrPara,Z+5,migrationEventNumber);
 	    printf("Setze Link für gewünschte Migration\n");
 	    //printf("t oben %f\n",t);
 	    gsl_matrix_set(EDmat, nu, mu, 1.);
@@ -228,7 +238,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
   
 //-- Migration lösen---------------------------------------------------------------------------------------------------------    
   gsl_vector *ydottest	= gsl_vector_calloc(Y);
-  double ydotmigr = gsl_vector_get(nicheweb->migrPara, 5);
+  double ydotmigr = gsl_vector_get(nicheweb->migrPara, Z+4);
 
   int count=0,m;
   for(l = 0; l< Y;l++)

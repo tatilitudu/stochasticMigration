@@ -34,7 +34,7 @@
 #include <stdio.h>						// output functions
 #include <stdlib.h>						// standard
 
-int getArgs(int argc, char** argv, int* S_value, int* B_value, int* T_value, double* d_value, int* L_value, int* Y_value, double* x_value, int* M_value, double* R_value)
+int getArgs(int argc, char** argv, int* S_value, int* B_value, int* T_value, double* d_value, int* L_value, int* Y_value, double* x_value, int* M_value, double* R_value, int* Z_value)
 {
   int i = 0;
 
@@ -48,6 +48,7 @@ int getArgs(int argc, char** argv, int* S_value, int* B_value, int* T_value, dou
   int x_check	= 0;
   int M_check	= 0;
   int R_check 	= 0;
+  int Z_check 	= 0;
 
   int checksum	= 0;		// Wird am Ende ausgegeben
 
@@ -108,6 +109,11 @@ int getArgs(int argc, char** argv, int* S_value, int* B_value, int* T_value, dou
 					R_check  = 1;
 					printf("Resource Größe ist %f \n", *R_value);
 					break;
+					
+		case 'Z':	*Z_value = atoi(argv[++i]);
+					Z_check  = 1;
+					printf("Es wird zu %i Zeitpunkten migriert \n", *Z_value);
+					break;
 	
 
 
@@ -125,8 +131,9 @@ int getArgs(int argc, char** argv, int* S_value, int* B_value, int* T_value, dou
     if (x_check == 0) printf("Missing switch: -x\n");
     if (M_check == 0) printf("Missing switch: -M\n");
     if (R_check == 0) printf("Missing switch: -R\n");
+    if (Z_check == 0) printf("Missing switch: -Z\n");
     
-    checksum = S_check + B_check + T_check + d_check + L_check + Y_check + x_check + M_check + R_check;
+    checksum = S_check + B_check + T_check + d_check + L_check + Y_check + x_check + M_check + R_check + Z_check;
 	
 	printf("checksum ist %i \n", checksum);
     

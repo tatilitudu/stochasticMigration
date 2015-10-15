@@ -39,7 +39,8 @@ gsl_vector* EvolveNetwork(struct foodweb nicheweb,  gsl_rng* rng1, const gsl_rng
 	int S 	 	= nicheweb.S;
 	int Y 	     	= nicheweb.Y;
 	int Rnum 	= nicheweb.Rnum;
-
+	int Z 		= nicheweb.Z;
+	
 	double Rsize = gsl_vector_get(nicheweb.network, (Rnum+S)*(Rnum+S)+Y*Y+2);
 		
 	double *y 	 = (double *)calloc((Rnum+S)*Y, sizeof(double));				// Ergebnis Array für den Lösungsalgorithmus
@@ -128,6 +129,8 @@ Er wird definiert über vier Größen
 
   double countsteps = 0;			// Schritte
 
+  
+  printf("Z ist %i\n",Z);
 //  int docheck 		= 0;			
 
 //--Erster Abschnitt bis t1--------------------------------------------------------------------------------------------------------------  
@@ -171,17 +174,22 @@ Er wird definiert über vier Größen
 
 	//printf("t=%f\n", t);	
 
-  double migrationWerte[4];
-  double tau=0, mu=0, nu=0;
+  double migrationWerte[Z+3];
+  gsl_vector *tau = gsl_vector_calloc(Z);
+  double mu=0, nu=0;
   double tlast = tend1;
   int SpeciesNumber;
   if(Y>1)
   {
     stochMigration(nicheweb, migrationWerte, y);
-    tau = migrationWerte[0];
-    mu = migrationWerte[1];
-    nu = migrationWerte[2];
-    SpeciesNumber = migrationWerte[3];
+    for(i = 0; i<Z; i++)
+    {
+      gsl_vector_set(tau, i, migrationWerte[i]);
+      printf("Das %i -te tau ist %f\n", i, gsl_vector_get(tau,i));
+    }
+    mu = migrationWerte[Z];
+    nu = migrationWerte[Z+1];
+    SpeciesNumber = migrationWerte[Z+2];
   }
   else
   {
@@ -191,17 +199,27 @@ Er wird definiert über vier Größen
   //printf("tau ist: %f\n",tau);
   //printf("mu ist: %f\n",mu);
   //printf("nu ist: %f\n",nu);
-  gsl_vector_set(nicheweb.migrPara,0,(tau+tend1));
-  gsl_vector_set(nicheweb.migrPara,1,mu);
-  gsl_vector_set(nicheweb.migrPara,2,nu);
-  gsl_vector_set(nicheweb.migrPara,3,SpeciesNumber);
-  gsl_vector_set(nicheweb.migrPara,4,0);
+  for(i = 0; i< Z ; i++)
+  {
+    gsl_vector_set(nicheweb.migrPara, i, (gsl_vector_get(tau,i)+tend1));
+  }
+  gsl_vector_set(nicheweb.migrPara,Z,mu);
+  gsl_vector_set(nicheweb.migrPara,Z+1,nu);
+  gsl_vector_set(nicheweb.migrPara,Z+2,SpeciesNumber);
+  gsl_vector_set(nicheweb.migrPara,Z+3,0);
+  gsl_vector_set(nicheweb.migrPara, Z+5,0);
 
+  printf("Z ist %i\n", Z);
+  
+  for(i = 0; i< Z+6; i++)
+  {
+    printf("Das %i -t Element von migrPara ist %f\n", i, gsl_vector_get(nicheweb.migrPara, i));
+  }
   
   while(t < tend2)
   {
-    gsl_vector_set(nicheweb.migrPara,4,tlast);	
-    //printf("SpeciesNumber %f\n", gsl_vector_get(nicheweb.migrPara,3));
+    gsl_vector_set(nicheweb.migrPara,Z+3,tlast);	
+    //printf("SpeciesNumber %f\n", gsl_vector_get(nicheweb.migrPara,Z+3));
     //printf("t=%f\n", t);
     countsteps++;
     //printf("y=%f\n", y[1]);
@@ -238,7 +256,7 @@ Er wird definiert über vier Größen
    
   }
   
-  printf("Es migrieren %f \n",gsl_vector_get(nicheweb.migrPara,5));
+  printf("Es migrieren %f \n",gsl_vector_get(nicheweb.migrPara,Z+5));
 //--Ergebnis zusammen fassen--------------------------------------------------------------------------------------------------------------------   
 
   for(i=0; i<(Rnum+S)*Y; i++)

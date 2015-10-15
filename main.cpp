@@ -68,7 +68,7 @@ Fixp0	Fixp1	Fixp2	Fixp3	Fixp4	Fixp5	Fixp6	Fixp7
 #include "evolveweb.h"					// DGL lösen
 #include "holling2.h"					// DGL lösen			
 #include "robustness.h"					// Robustness Analyse
-
+#include "StandardDeviation.h"					// Standardabweichung berechnen
 
 //--Verzeichnis für Ergebnisse-------------------------------------------------------
 #define ORT "/home/tatjana/Arbeitsfläche/MichaelasProgramm/stochastischeMigration/ErsteVersuche/"
@@ -81,10 +81,9 @@ int main(int argc, char** argv)
 //--Foodweb Struktur mit Standardwerten aufstellen------------------------------------------------------------------------------------------
 
 	gsl_vector* fixpunkte	= gsl_vector_calloc(9);
-	gsl_vector* migrPara 	= gsl_vector_calloc(6);
  	
 
-	struct foodweb nicheweb	= {NULL, fixpunkte, migrPara, 18, 3, 1, 5, 0, 0, -7., 0.0, 0};		// Reihenfolge: network, fxpkt, S, B, Rnum, Y, T, Tchoice, d, x, M
+	struct foodweb nicheweb	= {NULL, fixpunkte, NULL, 18, 3, 1, 5, 0, 0, -7., 0.0, 0, 1};		// Reihenfolge: network, fxpkt, S, B, Rnum, Y, T, Tchoice, d, x, M, Z
 	
 	struct resource res = {500.0, 0.0};											// Resource: Größe, Wachstum
 	
@@ -96,16 +95,16 @@ int main(int argc, char** argv)
 	int L = 5;	// Statistik
 	int i = 0;	// Counter
 	
-	int checksum = getArgs(argc, argv, &(nicheweb.S), &(nicheweb.B), &(nicheweb.T), &(nicheweb.d), &L, &(nicheweb.Y), &(nicheweb.x), &(nicheweb.M), &(res.size));	
+	int checksum = getArgs(argc, argv, &(nicheweb.S), &(nicheweb.B), &(nicheweb.T), &(nicheweb.d), &L, &(nicheweb.Y), &(nicheweb.x), &(nicheweb.M), &(res.size), &(nicheweb.Z));	
 
-		if (checksum != 9 && checksum!=(int)(argc-1)/2) 	// Alles gesetzt?									
+		if (checksum != 10 && checksum!=(int)(argc-1)/2) 	// Alles gesetzt?									
 		 {	
 			printf("Bitte gültige Eingabe für Parameter machen!\nProgramm wird beendet.\n");		
 			return(0);		
 		 }
 
-
-		 
+	printf("Z = %i\n",nicheweb.Z);
+	nicheweb.migrPara = gsl_vector_calloc(nicheweb.Z + 6);	 
 		 
 //--Zufallszahlengenerator initialisieren--------------------------------------------------------------------------------
 
@@ -163,7 +162,7 @@ int main(int argc, char** argv)
 	gsl_vector_set_zero(meanOfData);
 	gsl_vector_set_zero(meanSquOfData); 
 	gsl_vector_set_zero(meanSquOfDatatemp);
-	gsl_vector_set_zero(migrPara);
+	gsl_vector_set_zero(nicheweb.migrPara);
 	gsl_vector_set_zero(meanOfDataSquAll);
 	gsl_vector_set_zero(meanSquOfDataAll);
 	
@@ -188,24 +187,26 @@ int main(int argc, char** argv)
 		
 		
 		printf("\nStarte Durchlauf L = %i\n", i);
-			
+//--Starte Simulation-----------------------------------------------------------------------------------------------			
 		nicheweb.network = SetNicheNetwork(nicheweb, res, rng1, rng1_T);
 		populationFIN	 = EvolveNetwork(nicheweb, rng1, rng1_T);
 			
 												
 		gsl_vector_memcpy(robustnesstemp, EvaluateRobustness(populationFIN, nicheweb, patchwise));	// Robustness Analyse
-		gsl_vector_add(robustness,robustnesstemp);
+		
+// 		int length = 0;
+// 		length = NumberOfItemsOfObject(robustnesstemp, length);
+// 		printf("length ist %i\n",length);
 		
 //--Standardabweichung für Mittelung vorbereiten-----------------------------------------------------------------------------------------		
-		gsl_vector_memcpy(meanSquOfDataAlltemp,robustnesstemp);
-		gsl_vector_mul(meanSquOfDataAlltemp,robustnesstemp);
-		gsl_vector_add(meanSquOfDataAll,meanSquOfDataAlltemp);
+		determineMean(robustnesstemp, 63, robustness);
+		determineMeanSqu(robustnesstemp, 63, meanSquOfDataAll);
 		
 //--Ausgabewerte----------------------------------------------------------------------------------------------------------		
-		ymigrtemp = gsl_vector_get(nicheweb.migrPara, 5);
-		mu += gsl_vector_get(nicheweb.migrPara, 1);
-		nu += gsl_vector_get(nicheweb.migrPara, 2);
-		SpeciesNumber[i] = gsl_vector_get(nicheweb.migrPara,3);
+		ymigrtemp = gsl_vector_get(nicheweb.migrPara, nicheweb.Z+4);
+		mu += gsl_vector_get(nicheweb.migrPara, nicheweb.Z);
+		nu += gsl_vector_get(nicheweb.migrPara, nicheweb.Z+1);
+		SpeciesNumber[i] = gsl_vector_get(nicheweb.migrPara,nicheweb.Z+2);
 		//printf("SpeciesNumber ist %f\n",SpeciesNumber[i]);
 		ymigr += ymigrtemp;
 		
@@ -213,34 +214,14 @@ int main(int argc, char** argv)
 		
 		
 //--Mittelwert und Vorbereitungen für Standardabweichung für die patchweise Ausgabe berechnen--------------------------------		
-		for(int l = 0; l< nicheweb.Y ; l++)
-		{
-		    //printf("test %f\n",tempo.sini[0]);
-		    //printf("in Patch %i ist biomassfin in patchwise in main %f\n", l, gsl_vector_get(patchwise[l].bfini,0));
-
-		    for( int j = 0; j < 6; j++)
-		    {
-			gsl_vector_set(meanOfDatatemp, j+(4*6+2)*l,  gsl_vector_get(patchwise[l].sini,j));
-			gsl_vector_set(meanOfDatatemp, 6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].sfini,j));
-			gsl_vector_set(meanOfDatatemp, 2*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bini,j));
-			gsl_vector_set(meanOfDatatemp, 3*6+j+(4*6+2)*l, gsl_vector_get(patchwise[l].bfini,j));
-			
-		    }
-		    gsl_vector_set(meanOfDatatemp, 4*6+0+(4*6+2)*l,  gsl_vector_get(patchwise[l].robness,0));
-		    gsl_vector_set(meanOfDatatemp, 4*6+1+(4*6+2)*l,  gsl_vector_get(patchwise[l].robness,1));
-		}
-  		//printf("meanOfDatatemp in Durchlauf %i ist %f\n", i, gsl_vector_get(meanOfDatatemp, 3*6));
-		gsl_vector_add(meanOfData, meanOfDatatemp);
+		linkElements(patchwise, nicheweb.Y, meanOfDatatemp);
 		
-		gsl_vector_memcpy(meanSquOfDatatemp,meanOfDatatemp);
-		gsl_vector_mul(meanSquOfDatatemp,meanOfDatatemp);
-		gsl_vector_add(meanSquOfData, meanSquOfDatatemp);
-  	//	printf("dataProPatch bfini in Durchlauf 0 ist %f\n", gsl_matrix_get(dataProPatch, 0, 3*6));
+		determineMean(meanOfDatatemp, (6*4+2)*nicheweb.Y, meanOfData);
+		determineMeanSqu(meanOfDatatemp, (6*4+2)*nicheweb.Y, meanSquOfData);
 		
 		printf("\nBeende Durchlauf L = %i\n", i);
 	 }
-// 	 printf("dataProPatch bfini in Durchlauf 3 ist %f\n", gsl_matrix_get(dataProPatch, 3, 3*6));
-// 	 printf("dataProPatch bfini in Durchlauf 0 ist %f\n", gsl_matrix_get(dataProPatch, 0, 3*6));
+
 
 
 
@@ -252,38 +233,9 @@ int main(int argc, char** argv)
 	ymigrDeviation = sqrt(ymigrSqu - ymigr*ymigr);
 
 //-- Für patchweise Ausgabe-------------------------------------------------------------------------------------------
-	 for( i = 0; i< (6*4+2)*nicheweb.Y ; i++)
-	 {
-	    gsl_vector_set(meanOfData,i,gsl_vector_get(meanOfData,i)/L);
-	    gsl_vector_set(meanSquOfData,i,gsl_vector_get(meanSquOfData,i)/L);
-	 }
-	 
-	 gsl_vector_memcpy(meanOfDataSqu,meanOfData);
-	 gsl_vector_mul(meanOfDataSqu,meanOfData);
-	 
-	 for( i = 0; i< (6*4+2)*nicheweb.Y ; i++)
-	 {
-	   gsl_vector_set(standardDeviation, i, sqrt(gsl_vector_get(meanSquOfData,i) - gsl_vector_get(meanOfDataSqu,i)));
-	 }
-	 
-//  	 printf("mean ist %f\n",gsl_vector_get(meanOfData,3*6));
-//  	 printf("meanSquOfData ist %f\n",gsl_vector_get(meanSquOfData,3*6));
-//  	 printf("meanOfDataSqu ist %f\n",gsl_vector_get(meanOfDataSqu,3*6));
-//  	 printf("standardDeviation ist %f\n",gsl_vector_get(standardDeviation,3*6));
-
-//-- Für gemittelte Ausgabe----------------------------------------------------------------------------------------------
-	 gsl_vector_memcpy(meanOfDataSquAll,robustness);
-	 //printf("meanOfDataSqu ist %f\n", gsl_vector_get(meanOfDataSquAll,3));
-	 gsl_vector_mul(meanOfDataSquAll,robustness);
-	 //printf("meanOfDataSqu ist %f\n", gsl_vector_get(meanOfDataSquAll,3));
-	
-	 for(i =0; i<63; i++)
-	 {
-	  gsl_vector_set(meanOfDataSquAll, i, gsl_vector_get(meanOfDataSquAll,i)/(L*L));
-	  gsl_vector_set(meanSquOfDataAll, i, gsl_vector_get(meanSquOfDataAll,i)/L);
-	  gsl_vector_set(standardDeviationAll, i, sqrt(gsl_vector_get(meanSquOfDataAll,i)-gsl_vector_get(meanOfDataSquAll,i)));
-	 }
-	
+	standardDeviation = determineStandardDeviation((6*4+2)*nicheweb.Y, meanOfData, meanSquOfData, L);
+	standardDeviationAll = determineStandardDeviation(63, robustness, meanSquOfDataAll, L);
+	 //printf("der 3. Eintrag in standardDeviationAll ist %f\n", gsl_vector_get(standardDeviationAll,3));
 // 	 printf("S ist %f\n", gsl_vector_get(robustness,3));
 // 	 printf("Standardabweichung von S ist %f\n", gsl_vector_get(standardDeviationAll,3));
 // 	 printf("meanOfDataSqu ist %f\n", gsl_vector_get(meanOfDataSquAll,3));
@@ -466,7 +418,7 @@ int main(int argc, char** argv)
 	}
 	
 
-	gsl_vector_free(migrPara);
+	gsl_vector_free(nicheweb.migrPara);
 	gsl_vector_free(populationFIN);
 	gsl_vector_free(robustness);	
 	gsl_vector_free(meanOfData);

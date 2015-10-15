@@ -25,6 +25,7 @@ struct foodweb{
 	double x;
 
 	int M;
+	int Z;
 	
 };
 

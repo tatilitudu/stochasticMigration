@@ -17,12 +17,13 @@
 
 #define SEED	123
 
-double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const double y[] )
+double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const double y[])
 {
   int Y = nicheweb.Y;
   int S = nicheweb.S;
   int Tchoice = nicheweb.Tchoice;
   int Rnum = nicheweb.Rnum;
+  int Z = nicheweb.Z;
   //gsl_vector *network 	= nicheweb.network;		// Inhalt: A+linksA+Y+linksY+Massen+Trophische_Level = (Rnum+S)²+1+Y²+1+(Rnum+S)+S
   
 /*  gsl_vector_view D_view = gsl_vector_subvector(network, (Rnum+S)*(Rnum+S)+1, Y*Y);					// Migrationsmatrix D als Vektor
@@ -61,12 +62,13 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   
 	
   gsl_matrix *Dchoice    = SetTopology(Y, Tchoice);	
+  printf("\n");
 
   //printf("Tchoice ist %i\n",Tchoice);
   
   if( Tchoice == 0 )
   {
-    for(i=0; i<3;i++)
+    for(i=0; i<Z+3;i++)
     {
       migrationWerte[i]=0;
     }
@@ -98,22 +100,23 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   
     atot = gsl_blas_dasum(a);
   
-    printf("\nBerechne Zeitpunkt, zu dem migriert werden soll\t\t");
-    if( atot>0 )
+    printf("Z ist %i\n", Z);
+    
+    printf("Berechne Zeitpunkte, zu den migriert werden soll:\n");
+    for(i= 0; i< Z; i++ )
     {
-      // rand liefert zufällige Zahl zwischen 0 und INT_MAX
-      migrationWerte[0] = -log((double)rand()/INT_MAX) / atot;
+      migrationWerte[i] =  choose_time(atot);
+      
     }
-    printf("tau: %f\n",migrationWerte[0]);
-  
+    printf("\n");
     r = (double)rand()/INT_MAX;
     //printf("r ist %f\n",r);
   
     printf("Berechne von welchem Patch aus migriert werden soll\t");
     //printf("r: %f\n",r);
     //printf("atot: %f\n",atot);
-    migrationWerte[1] = select_patch(a,atot,r,Y);
-    printf("mu: %f\n",migrationWerte[1]);
+    migrationWerte[Z] = select_patch(a,atot,r,Y);
+    printf("mu: %f\n",migrationWerte[Z]);
     int flag=1;
   
     printf("Berechne in welches Patch migriert werden soll\t\t");
@@ -121,13 +124,13 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
     {
       r1  = (double)rand()/INT_MAX;
       //printf("r1 ist %f\n",r1);
-      migrationWerte[2] = select_patch(a,atot,r1,Y);
-      if(migrationWerte[2]!=migrationWerte[1] && gsl_matrix_get(Dchoice,migrationWerte[2],migrationWerte[1])!=0)
+      migrationWerte[Z+1] = select_patch(a,atot,r1,Y);
+      if(migrationWerte[Z+1]!=migrationWerte[Z] && gsl_matrix_get(Dchoice,migrationWerte[Z+1],migrationWerte[Z])!=0)
       {
 	flag = 0;
       }
     }
-    printf("nu: %f\n",migrationWerte[2]);
+    printf("nu: %f\n",migrationWerte[Z+1]);
     
     
     int SpeciesNumber;
@@ -135,7 +138,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
     //printf("r2 ist %f\n",r2);
     int Choice = 0;
     SpeciesNumber = select_species(nicheweb, r2, Choice, y);
-    migrationWerte[3] = SpeciesNumber;
+    migrationWerte[Z+2] = SpeciesNumber;
     
     printf("SpeciesNumber: %i\n\n", SpeciesNumber);
     //printf("Population dieser Spezies ist %f\n",y[SpeciesNumber+Rnum]);
@@ -157,6 +160,19 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   
   
   return 0;
+}
+
+double choose_time(double atot)
+{
+  double tau;
+  if( atot>0 )
+  {
+    // rand liefert zufällige Zahl zwischen 0 und INT_MAX
+    tau = -log((double)rand()/INT_MAX)/ atot;
+  }
+  printf("tau: %f\t",tau);
+    
+  return tau;
 }
 
 
