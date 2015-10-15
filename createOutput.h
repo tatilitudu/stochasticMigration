@@ -5,5 +5,6 @@
 
 int createOutputGeneral(struct foodweb nicheweb, struct resource res, char* aims, gsl_vector* robustness, gsl_vector* standardDeviationAll, int L, double mu, double nu, double ymigr, double ymigrDeviation);
 int createOutputPatchwise(struct foodweb nicheweb, struct resource res, char* aims, gsl_vector* robustness, gsl_vector* standardDeviationAll, int L, int l);
+int createOutputSpeciesNumber(struct foodweb nicheweb, struct resource res, char* aims, double SpeciesNumber[], int L);
 
 #endif

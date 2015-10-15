@@ -58,23 +58,23 @@ gsl_vector* determineStandardDeviation(int length, gsl_vector* meanOfData, gsl_v
   gsl_vector* standardDeviation = gsl_vector_calloc(length);
   gsl_vector* meanOfDataSqu = gsl_vector_calloc(length);
   
-  printf("meanSquOfData ist oben %f\n", gsl_vector_get(meanSquOfData,3));
+  //printf("meanSquOfData ist oben %f\n", gsl_vector_get(meanSquOfData,3));
   gsl_vector_memcpy(meanOfDataSqu, meanOfData);
-  printf("meanOfData ist %f\n", gsl_vector_get(meanOfDataSqu,3));
+  //printf("meanOfData ist %f\n", gsl_vector_get(meanOfDataSqu,3));
   
   gsl_vector_mul(meanOfDataSqu, meanOfData);
 
-  printf("meanOfDataSqu ist oben %f\n", gsl_vector_get(meanOfDataSqu,3));
-  printf("L ist %i\n",L);
+//   printf("meanOfDataSqu ist oben %f\n", gsl_vector_get(meanOfDataSqu,3));
+//   printf("L ist %i\n",L);
   for(int i = 0 ; i < length; i++)
   {
     gsl_vector_set(meanSquOfData,i,gsl_vector_get(meanSquOfData,i)/L);
     gsl_vector_set(meanOfDataSqu,i,gsl_vector_get(meanOfDataSqu,i)/(L*L));
-    if(i==3)
-    {
-      printf("meanOfDataSqu ist %f\n", gsl_vector_get(meanOfDataSqu,i));
-      printf("meanSquOfData ist %f\n", gsl_vector_get(meanSquOfData,i));
-    }
+//     if(i==3)
+//     {
+//       printf("meanOfDataSqu ist %f\n", gsl_vector_get(meanOfDataSqu,i));
+//       printf("meanSquOfData ist %f\n", gsl_vector_get(meanSquOfData,i));
+//     }
     gsl_vector_set(standardDeviation, i, sqrt(gsl_vector_get(meanSquOfData,i) - gsl_vector_get(meanOfDataSqu,i)));
   }
   
