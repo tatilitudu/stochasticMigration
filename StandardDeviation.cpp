@@ -40,7 +40,7 @@ gsl_vector* determineMean(gsl_vector* object, int length, gsl_vector* mean)
 
 gsl_vector* determineMeanSqu(gsl_vector* object, int length, gsl_vector* meanSqu)
 {
-  gsl_vector* meanSqutemp;
+  gsl_vector* meanSqutemp = gsl_vector_calloc(length);
   
   gsl_vector_memcpy(meanSqutemp, object);
   gsl_vector_mul(meanSqutemp, object);
