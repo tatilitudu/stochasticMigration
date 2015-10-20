@@ -55,23 +55,22 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	int Z 		= nicheweb->Z;
 	double dij 	= pow(10, d);
 
-	double nu,mu;
-	gsl_vector *tau = gsl_vector_calloc(Z);
+	double nu,mu, tau;
+	
 	int SpeciesNumber;
 	
-	for(i = 0; i <Z; i++)
+	tau =  gsl_vector_get(nicheweb->migrPara,0);
+	
+	mu = gsl_vector_get(nicheweb->migrPara,1);
+	nu = gsl_vector_get(nicheweb->migrPara,2);
+	SpeciesNumber = gsl_vector_get(nicheweb->migrPara,3);
+	double tlast = gsl_vector_get(nicheweb->migrPara,4);
+	
+ 	if(SpeciesNumber!= 0)
 	{
-	  gsl_vector_set(tau, i, gsl_vector_get(nicheweb->migrPara,i));
+	  //printf("SpeciesNumber %i\n", SpeciesNumber);
 	}
-	
-	mu = gsl_vector_get(nicheweb->migrPara,Z);
-	nu = gsl_vector_get(nicheweb->migrPara,Z+1);
-	SpeciesNumber = gsl_vector_get(nicheweb->migrPara,Z+2);
-	double tlast = gsl_vector_get(nicheweb->migrPara,Z+3);
-	int migrationEventNumber = gsl_vector_get(nicheweb->migrPara, Z+5);
-	
- 	//printf("SpeciesNumber %i\n", SpeciesNumber);
-	//printf("t oben %f\n",t);
+	  //printf("t oben %f\n",t);
 		//int len	 = (Rnum+S)*(Rnum+S)+2+Y*Y+(Rnum+S)+S;
 	
 	gsl_vector_view A_view = gsl_vector_subvector(network, 0, (Rnum+S)*(Rnum+S));						// Fressmatrix A als Vektor
@@ -88,16 +87,11 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	
 	
  //-- verändere zu dem gewünschten Zeitpunkt Migrationsmatrix	
-
-	double tautemp;
 	
-	tautemp = gsl_vector_get(tau, migrationEventNumber);
-	
-	if( (t > tautemp) && (tlast < tautemp))
+	if( (t > tau) && (tlast < tau))
 	{	
-	    gsl_vector_set(nicheweb->migrPara,Z+3,t);
-	    migrationEventNumber++;
-	    gsl_vector_set(nicheweb->migrPara,Z+5,migrationEventNumber);
+	    gsl_vector_set(nicheweb->migrPara,4,t);
+
 	    printf("Setze Link für gewünschte Migration\n");
 	    //printf("t oben %f\n",t);
 	    gsl_matrix_set(EDmat, nu, mu, 1.);
@@ -238,7 +232,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
   
 //-- Migration lösen---------------------------------------------------------------------------------------------------------    
   gsl_vector *ydottest	= gsl_vector_calloc(Y);
-  double ydotmigr = gsl_vector_get(nicheweb->migrPara, Z+4);
+  double ydotmigr = gsl_vector_get(nicheweb->migrPara, 5);
 
   int count=0,m;
   for(l = 0; l< Y;l++)

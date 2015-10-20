@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 		 }
 
 	printf("Z = %i\n",nicheweb.Z);
-	nicheweb.migrPara = gsl_vector_calloc(nicheweb.Z + 6);	 
+	nicheweb.migrPara = gsl_vector_calloc(7);	 
 		 
 //--Zufallszahlengenerator initialisieren--------------------------------------------------------------------------------
 
@@ -200,10 +200,10 @@ int main(int argc, char** argv)
 		determineMeanSqu(robustnesstemp, 63, meanSquOfDataAll);
 		
 //--Ausgabewerte----------------------------------------------------------------------------------------------------------		
-		ymigrtemp = gsl_vector_get(nicheweb.migrPara, nicheweb.Z+4);
-		mu += gsl_vector_get(nicheweb.migrPara, nicheweb.Z);
-		nu += gsl_vector_get(nicheweb.migrPara, nicheweb.Z+1);
-		SpeciesNumber[i] = gsl_vector_get(nicheweb.migrPara,nicheweb.Z+2);
+		ymigrtemp = gsl_vector_get(nicheweb.migrPara, 5);
+		mu += gsl_vector_get(nicheweb.migrPara, 1);
+		nu += gsl_vector_get(nicheweb.migrPara, 2);
+		SpeciesNumber[i] = gsl_vector_get(nicheweb.migrPara,3);
 		//printf("SpeciesNumber ist %f\n",SpeciesNumber[i]);
 		ymigr += ymigrtemp;
 		

@@ -114,13 +114,13 @@ int createOutputPatchwise(struct foodweb nicheweb, struct resource res, char* ai
  
   for(i = (0 + (6*4+2)*l); i< ((6*2)+(6*4+2)*l); i++)
   {
-    fprintf(statForPatchl,"%5.3f\t",gsl_vector_get(meanOfData,i));      
+    fprintf(statForPatchl,"%5.3f\t",gsl_vector_get(meanOfData,i)/L);      
     
   }
 	 
   for(i = ((6*2)+(6*4+2)*l); i< ((6*4+2)+(6*4+2)*l); i++)
   {
-    fprintf(statForPatchl,"%6.5f\t",gsl_vector_get(meanOfData,i));      
+    fprintf(statForPatchl,"%6.5f\t",gsl_vector_get(meanOfData,i)/L);      
     
   }
 	 

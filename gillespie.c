@@ -17,7 +17,7 @@
 
 #define SEED	123
 
-double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const double y[])
+double* stochMigration(struct foodweb nicheweb, const double y[], gsl_rng* rng1, const gsl_rng_type* rng1_T)
 {
   int Y = nicheweb.Y;
   int S = nicheweb.S;
@@ -56,7 +56,7 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
 //   }
   
   // Starte Random Number Generator
-  srand(SEED);	
+  //srand(SEED);	
   int linkCountTemp, m;
 
   
@@ -68,9 +68,9 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   
   if( Tchoice == 0 )
   {
-    for(i=0; i<Z+3;i++)
+    for(i=0; i<7;i++)
     {
-      migrationWerte[i]=0;
+      gsl_vector_set(nicheweb.migrPara, i, 0);
     }
     printf("Es findet keine Migration statt\n");
   }
@@ -93,52 +93,53 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   
     gsl_vector *a	= gsl_vector_calloc(Y);
     double atot;
-    double r,r1,r2;
+    //double r,r1,r2;
   
     gsl_vector_memcpy(a,linkCount);
     gsl_vector_mul(a,c);
   
     atot = gsl_blas_dasum(a);
   
-    printf("Z ist %i\n", Z);
+    //printf("Z ist %i\n", Z);
     
     printf("Berechne Zeitpunkte, zu den migriert werden soll:\n");
-    for(i= 0; i< Z; i++ )
-    {
-      migrationWerte[i] =  choose_time(atot);
-      
-    }
+    double tau = choose_time(atot, rng1);
+    gsl_vector_set(nicheweb.migrPara, 0, tau);
+
     printf("\n");
-    r = (double)rand()/INT_MAX;
+    //r = (double)rand()/INT_MAX;
     //printf("r ist %f\n",r);
   
     printf("Berechne von welchem Patch aus migriert werden soll\t");
     //printf("r: %f\n",r);
     //printf("atot: %f\n",atot);
-    migrationWerte[Z] = select_patch(a,atot,r,Y);
-    printf("mu: %f\n",migrationWerte[Z]);
+    int mu = select_patch(a,atot, rng1, Y);
+    gsl_vector_set(nicheweb.migrPara, 1, mu);
+    printf("mu: %i\n",mu);
     int flag=1;
   
     printf("Berechne in welches Patch migriert werden soll\t\t");
+    int nu; 
     while(flag != 0)
     {
-      r1  = (double)rand()/INT_MAX;
+      //r1  = (double)rand()/INT_MAX;
       //printf("r1 ist %f\n",r1);
-      migrationWerte[Z+1] = select_patch(a,atot,r1,Y);
-      if(migrationWerte[Z+1]!=migrationWerte[Z] && gsl_matrix_get(Dchoice,migrationWerte[Z+1],migrationWerte[Z])!=0)
+      nu = select_patch(a,atot,rng1,Y);
+      gsl_vector_set(nicheweb.migrPara, 2, nu); 
+      if(nu!= mu  && gsl_matrix_get(Dchoice, nu, mu)!=0)
       {
 	flag = 0;
       }
     }
-    printf("nu: %f\n",migrationWerte[Z+1]);
+    printf("nu: %i\n", nu);
     
     
     int SpeciesNumber;
-    r2 = (double)rand()/INT_MAX;
+    //r2 = (double)rand()/INT_MAX;
     //printf("r2 ist %f\n",r2);
     int Choice = 0;
-    SpeciesNumber = select_species(nicheweb, r2, Choice, y);
-    migrationWerte[Z+2] = SpeciesNumber;
+    SpeciesNumber = select_species(nicheweb, rng1, Choice, y);
+    gsl_vector_set(nicheweb.migrPara, 3, SpeciesNumber);
     
     printf("SpeciesNumber: %i\n\n", SpeciesNumber);
     //printf("Population dieser Spezies ist %f\n",y[SpeciesNumber+Rnum]);
@@ -162,13 +163,14 @@ double* stochMigration(struct foodweb nicheweb, double* migrationWerte, const do
   return 0;
 }
 
-double choose_time(double atot)
+double choose_time(double atot, gsl_rng* rng1)
 {
   double tau;
+  double r = gsl_rng_uniform_pos(rng1);
   if( atot>0 )
   {
     // rand liefert zufällige Zahl zwischen 0 und INT_MAX
-    tau = -log((double)rand()/INT_MAX)/ atot;
+    tau = -log(r)/ atot;
   }
   printf("tau: %f\t",tau);
     
@@ -176,8 +178,9 @@ double choose_time(double atot)
 }
 
 
-int select_patch(gsl_vector* a, double atot, double r, int Y)
+int select_patch(gsl_vector* a, double atot, gsl_rng* rng1, int Y)
 {
+  double r = gsl_rng_uniform_pos(rng1);
   int i;
   int mu;
   double sum=0;
@@ -197,7 +200,7 @@ int select_patch(gsl_vector* a, double atot, double r, int Y)
 }
 
 
-int select_species(struct foodweb nicheweb, double r, int Choice, const double y[])
+int select_species(struct foodweb nicheweb, gsl_rng* rng1, int Choice, const double y[])
 {
   int S = nicheweb.S;
   int Y = nicheweb.Y;
@@ -212,6 +215,7 @@ int select_species(struct foodweb nicheweb, double r, int Choice, const double y
   int SpeciesNumber;
   double sum = 0;
   double atot;
+  double r = gsl_rng_uniform_pos(rng1);
   gsl_vector *a = gsl_vector_calloc(S);
   gsl_vector *c = gsl_vector_calloc(S);
   

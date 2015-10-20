@@ -174,22 +174,23 @@ Er wird definiert über vier Größen
 
 	//printf("t=%f\n", t);	
 
-  double migrationWerte[Z+3];
-  gsl_vector *tau = gsl_vector_calloc(Z);
-  double mu=0, nu=0;
+  //double migrationWerte[4];
+  double mu=0, nu=0, tau = 0;
   double tlast = tend1;
   int SpeciesNumber;
+  int migrationEventNumber = 0;
+  
   if(Y>1)
   {
-    stochMigration(nicheweb, migrationWerte, y);
-    for(i = 0; i<Z; i++)
-    {
-      gsl_vector_set(tau, i, migrationWerte[i]);
-      printf("Das %i -te tau ist %f\n", i, gsl_vector_get(tau,i));
-    }
-    mu = migrationWerte[Z];
-    nu = migrationWerte[Z+1];
-    SpeciesNumber = migrationWerte[Z+2];
+    stochMigration(nicheweb, y, rng1, rng1_T);
+    gsl_vector_set(nicheweb.migrPara, 0 , gsl_vector_get(nicheweb.migrPara, 0)+tend1);
+    printf("tau ist %f\n", gsl_vector_get(nicheweb.migrPara, 0));
+    printf("mu ist %f\n", gsl_vector_get(nicheweb.migrPara, 1));
+    printf("nu ist %f\n", gsl_vector_get(nicheweb.migrPara, 2));
+    //     tau= migrationWerte[0];
+//     mu = migrationWerte[1];
+//     nu = migrationWerte[2];
+//     SpeciesNumber = migrationWerte[3];
   }
   else
   {
@@ -199,41 +200,47 @@ Er wird definiert über vier Größen
   //printf("tau ist: %f\n",tau);
   //printf("mu ist: %f\n",mu);
   //printf("nu ist: %f\n",nu);
-  for(i = 0; i< Z ; i++)
-  {
-    gsl_vector_set(nicheweb.migrPara, i, (gsl_vector_get(tau,i)+tend1));
-  }
-  gsl_vector_set(nicheweb.migrPara,Z,mu);
-  gsl_vector_set(nicheweb.migrPara,Z+1,nu);
-  gsl_vector_set(nicheweb.migrPara,Z+2,SpeciesNumber);
-  gsl_vector_set(nicheweb.migrPara,Z+3,0);
-  gsl_vector_set(nicheweb.migrPara, Z+5,0);
-
-  printf("Z ist %i\n", Z);
   
-  for(i = 0; i< Z+6; i++)
+
+  //printf("Z ist %i\n", Z);
+  
+  for(i = 0; i< 7; i++)
   {
-    printf("Das %i -t Element von migrPara ist %f\n", i, gsl_vector_get(nicheweb.migrPara, i));
+    //printf("Das %i -t Element von migrPara ist %f\n", i, gsl_vector_get(nicheweb.migrPara, i));
   }
   
   while(t < tend2)
   {
-    gsl_vector_set(nicheweb.migrPara,Z+3,tlast);	
+    gsl_vector_set(nicheweb.migrPara, 4,tlast);	
     //printf("SpeciesNumber %f\n", gsl_vector_get(nicheweb.migrPara,Z+3));
     //printf("t=%f\n", t);
     countsteps++;
     //printf("y=%f\n", y[1]);
     int status = gsl_odeiv_evolve_apply(e, c, s, &sys, &t, tend2, &h, y);		// Hier werden fixp Variablen benutzt
 
-	if(status != GSL_SUCCESS)
+    if(status != GSL_SUCCESS)
       break;
 
+    
+    
     for(i=0; i<(Rnum+S)*Y; i++)
       {
 		  if(y[i]< 1.0e-5)				// wieder Aussterbe-Kriterium
 		   y[i]= 0;
 				
       }
+    //printf("test");
+    tlast = t;
+    if(t > gsl_vector_get(nicheweb.migrPara, 0)&& migrationEventNumber < Z)
+    {
+      stochMigration(nicheweb, y, rng1, rng1_T);
+      gsl_vector_set(nicheweb.migrPara, 0 , gsl_vector_get(nicheweb.migrPara, 0)+t);
+      //printf("tau ist %f\n", gsl_vector_get(nicheweb.migrPara, 0));
+      //printf("mu ist %f\n", gsl_vector_get(nicheweb.migrPara, 1));
+      //printf("nu ist %f\n", gsl_vector_get(nicheweb.migrPara, 2));
+      migrationEventNumber++;
+    }
+    
     
     for(i=0; i<(Rnum+S)*Y; i++)
       {
@@ -245,7 +252,7 @@ Er wird definiert über vier Größen
 
 		  gsl_vector_set(yavg, i, ((gsl_vector_get(yavg, i)*(countsteps-1)+y[i])/countsteps));
       }
-      tlast = t;
+      
 
 	// if(status == GSL_SUCCESS)	printf("Status OK\n");
 
@@ -255,8 +262,9 @@ Er wird definiert über vier Größen
     //testf2	= testf2*fixp2;
    
   }
-  
-  printf("Es migrieren %f \n",gsl_vector_get(nicheweb.migrPara,Z+5));
+  printf("migrationEventNumber ist %i\n", migrationEventNumber);
+  printf("Letztes Migrationsereignis zum Zeitpunkt %f\n", gsl_vector_get(nicheweb.migrPara, 0));
+  printf("Es migrieren %f \n",gsl_vector_get(nicheweb.migrPara,5));
 //--Ergebnis zusammen fassen--------------------------------------------------------------------------------------------------------------------   
 
   for(i=0; i<(Rnum+S)*Y; i++)
