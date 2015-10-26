@@ -62,7 +62,13 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	tau =  gsl_vector_get(nicheweb->migrPara,0);
 	
 	mu = gsl_vector_get(nicheweb->migrPara,1);
+	if((int)nu!=0)
+	{
+	  //printf("nu ist nicht null sondern %f\n",nu);
+	}
+	
 	nu = gsl_vector_get(nicheweb->migrPara,2);
+	
 	SpeciesNumber = gsl_vector_get(nicheweb->migrPara,3);
 	double tlast = gsl_vector_get(nicheweb->migrPara,4);
 	
@@ -90,6 +96,8 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	
 	if( (t > tau) && (tlast < tau))
 	{	
+	    //printf("mu ist %f\n", gsl_vector_get(nicheweb->migrPara,1));
+	    //printf("nu ist %f\n", nu);
 	    gsl_vector_set(nicheweb->migrPara,4,t);
 
 	    printf("Setze Link für gewünschte Migration\n");

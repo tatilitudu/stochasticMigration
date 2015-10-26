@@ -143,6 +143,7 @@ int createOutputPatchwise(struct foodweb nicheweb, struct resource res, char* ai
   }
 	 
   printf("\n Es wird Datei für Patch %i erstellt\n",l);
+  fclose(statForPatchl);	
   
   return 0;
   
@@ -165,13 +166,51 @@ int createOutputSpeciesNumber(struct foodweb nicheweb, struct resource res, char
   SpeciesNumbers = fopen(strcat(aims, buffers3),"w");											// strcat: klebt zwei Strings aneinander (buffers an aims) -> Pfad+Name
   // fopen(*filename, "w") erzeugt eine neue Datei in die geschrieben werden kann. Existiert schon eine Datei dieses Namens wird diese überschrieben.
 
-  for(i = 0; i<L; i++)
+  for(i = 0; i<nicheweb.Z*L; i++)
   {
     fprintf(SpeciesNumbers,"%5.1f\t",SpeciesNumber[i]);
   }
 	
   fprintf(SpeciesNumbers,"\n");
   fclose(SpeciesNumbers);
+  
+  return 0;
+  
+}
+
+
+
+int createOutputPatchlink(struct foodweb nicheweb, struct resource res, char* aims, double AllMu[], double AllNu[], int L)
+{
+  int i;
+  
+  FILE *Patchlink;
+  char buffers4[100];
+	
+  printf("\n Es wird Ausgabe erstellt, welcher Link zum Migrieren ausgewählt wurde\n");
+	
+  sprintf(buffers4,"PatchlinkS%dB%d_M%d_x%1.1fY%dd%2.1fT%dL%dRSize%5.1f.out",nicheweb.S,nicheweb.B,nicheweb.M,nicheweb.x,nicheweb.Y,nicheweb.d,nicheweb.T,L,res.size);
+      
+  // sprintf: schreibt eine Zeichenkette in den Speicherbereich von buffers
+
+  Patchlink = fopen(strcat(aims, buffers4),"w");											// strcat: klebt zwei Strings aneinander (buffers an aims) -> Pfad+Name
+  // fopen(*filename, "w") erzeugt eine neue Datei in die geschrieben werden kann. Existiert schon eine Datei dieses Namens wird diese überschrieben.
+
+  for(i = 0; i<nicheweb.Z*L; i++)
+  {
+    fprintf(Patchlink,"%5.1f\t",AllMu[i]);
+  }
+	
+  fprintf(Patchlink,"\n");
+  
+  for(i = 0; i<nicheweb.Z*L; i++)
+  {
+    fprintf(Patchlink,"%5.1f\t",AllNu[i]);
+  }
+	
+  fprintf(Patchlink,"\n");
+  
+  fclose(Patchlink);
   
   return 0;
   

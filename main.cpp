@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 	gsl_vector* fixpunkte	= gsl_vector_calloc(9);
  	
 
-	struct foodweb nicheweb	= {NULL, fixpunkte, NULL, 18, 3, 1, 5, 0, 0, -7., 0.0, 0, 1};		// Reihenfolge: network, fxpkt, S, B, Rnum, Y, T, Tchoice, d, x, M, Z
+	struct foodweb nicheweb	= {NULL, fixpunkte, NULL, NULL, NULL, NULL, 18, 3, 1, 5, 0, 0, -7., 0.0, 0, 1};		// Reihenfolge: network, fxpkt, migrPara, AllMus, AllNus, S, B, Rnum, Y, T, Tchoice, d, x, M, Z
 	
 	struct resource res = {500.0, 0.0};											// Resource: Größe, Wachstum
 	
@@ -105,8 +105,11 @@ int main(int argc, char** argv)
 		 }
 
 	printf("Z = %i\n",nicheweb.Z);
-	nicheweb.migrPara = gsl_vector_calloc(7);	 
-		 
+	nicheweb.migrPara = gsl_vector_calloc(6); // Reihenfolge: tau, mu, nu, SpeciesNumber, momentanes t, ymigr	 
+	nicheweb.SpeciesNumbers = gsl_vector_calloc(L*nicheweb.Z);
+	nicheweb.AllMus = gsl_vector_calloc(L*nicheweb.Z);
+	nicheweb.AllNus = gsl_vector_calloc(L*nicheweb.Z);
+	
 //--Zufallszahlengenerator initialisieren--------------------------------------------------------------------------------
 
 		const gsl_rng_type *rng1_T;											// ****
@@ -140,6 +143,7 @@ int main(int argc, char** argv)
 //--Simulation---------------------------------------------------------------------------------------------------
 	nicheweb.Tchoice = nicheweb.T;
 	nicheweb.T = 0;
+	nicheweb.d = nicheweb.d/10;
 	//int len	= ((nicheweb.Rnum+nicheweb.S)*(nicheweb.S+nicheweb.Rnum)+1+nicheweb.Y*nicheweb.Y+1+(nicheweb.Rnum+nicheweb.S)+nicheweb.S);	// Länge des Rückabewerts
 
 	gsl_vector *populationFIN 	= gsl_vector_calloc((nicheweb.Rnum + nicheweb.S)*(nicheweb.Y)*5 + (nicheweb.S) + 3);				// Gleiche Länge wie Rückgabe von evolveNetwork
@@ -163,7 +167,9 @@ int main(int argc, char** argv)
 	gsl_vector_set_zero(nicheweb.migrPara);
 	gsl_vector_set_zero(meanSquOfDataAll);
 	
-	double SpeciesNumber[L]; 
+	double SpeciesNumber[L*nicheweb.Z]; 
+	double AllMu[L*nicheweb.Z];
+	double AllNu[L*nicheweb.Z];
 	
 	double ymigr = 0;
 	double mu = 0;
@@ -191,9 +197,6 @@ int main(int argc, char** argv)
 												
 		gsl_vector_memcpy(robustnesstemp, EvaluateRobustness(populationFIN, nicheweb, patchwise));	// Robustness Analyse
 		
-// 		int length = 0;
-// 		length = NumberOfItemsOfObject(robustnesstemp, length);
-// 		printf("length ist %i\n",length);
 		
 //--Standardabweichung für Mittelung vorbereiten-----------------------------------------------------------------------------------------		
 		determineMean(robustnesstemp, 63, robustness);
@@ -201,9 +204,12 @@ int main(int argc, char** argv)
 		
 //--Ausgabewerte----------------------------------------------------------------------------------------------------------		
 		ymigrtemp = gsl_vector_get(nicheweb.migrPara, 5);
-		mu += gsl_vector_get(nicheweb.migrPara, 1);
-		nu += gsl_vector_get(nicheweb.migrPara, 2);
-		SpeciesNumber[i] = gsl_vector_get(nicheweb.migrPara,3);
+		for(int j= 0; j<nicheweb.Z; j++)
+		{
+		  AllMu[i*nicheweb.Z+j] = gsl_vector_get(nicheweb.AllMus, j);
+		  AllNu[i*nicheweb.Z+j] = gsl_vector_get(nicheweb.AllNus, j);
+		  SpeciesNumber[i*nicheweb.Z+j] = gsl_vector_get(nicheweb.SpeciesNumbers,j);
+		}
 		//printf("SpeciesNumber ist %f\n",SpeciesNumber[i]);
 		ymigr += ymigrtemp;
 		
@@ -263,13 +269,22 @@ int main(int argc, char** argv)
        
       }
       
+      if(nicheweb.Tchoice != 0)
+      {
 //--Ausgewählte Spezies rausschreiben, die migrieren darf---------------------------------------------------------------------------
 	
-      char aims3[255] = ORT;
+	char aims3[255] = ORT;
 	
-      createOutputSpeciesNumber(nicheweb, res, aims3, SpeciesNumber, L);
+	createOutputSpeciesNumber(nicheweb, res, aims3, SpeciesNumber, L);
 
+      
+//--Ausgewählte Verbindung rausschreiben, über die migriert werden darf---------------------------------------------------------------------------
 	
+	char aims4[255] = ORT;
+	
+	createOutputPatchlink(nicheweb, res, aims4, AllMu, AllNu, L);
+      }
+      
       printf("\nSimulation abgespeichert\n\n");
 	
 //--free----------------------------------------------------------------------------------------------------------------  
@@ -289,6 +304,9 @@ int main(int argc, char** argv)
 	
 
 	gsl_vector_free(nicheweb.migrPara);
+	gsl_vector_free(nicheweb.AllMus);
+	gsl_vector_free(nicheweb.AllNus);
+	gsl_vector_free(nicheweb.SpeciesNumbers);
 	gsl_vector_free(populationFIN);
 	gsl_vector_free(robustness);	
 	gsl_vector_free(meanOfData);

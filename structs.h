@@ -12,6 +12,9 @@ struct foodweb{
 	gsl_vector* network;
 	gsl_vector* fixpunkte;				// fix0,1,2, fixp0,1,2, testf0,1,2
 	gsl_vector* migrPara;
+	gsl_vector* SpeciesNumbers;
+	gsl_vector* AllMus;
+	gsl_vector* AllNus;
 	
 	int S;
 	int B;

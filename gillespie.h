@@ -16,7 +16,7 @@
 #include <gsl/gsl_vector.h>
 
 
-double* stochMigration(struct foodweb nicheweb, const double[], gsl_rng* rng1, const gsl_rng_type* rng1_T);
+double* stochMigration(struct foodweb nicheweb, const double[], gsl_rng* rng1, const gsl_rng_type* rng1_T, int);
 int select_patch(gsl_vector*, double, gsl_rng* rng1, int);
 int select_species(struct foodweb nicheweb, gsl_rng* rng1, int, const double[]);
 double choose_time(double, gsl_rng* rng1);
