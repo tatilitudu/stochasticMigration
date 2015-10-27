@@ -32,7 +32,7 @@
 #include <gsl/gsl_odeiv.h>
 #include <gsl/gsl_errno.h>
 
-gsl_vector* EvolveNetwork(struct foodweb nicheweb,  gsl_rng* rng1, const gsl_rng_type* rng1_T)
+gsl_vector* EvolveNetwork(struct foodweb nicheweb, struct migration stochastic, gsl_rng* rng1, const gsl_rng_type* rng1_T)
 {	
 	struct foodweb *params = &nicheweb; 									// Damit Holling2 auf das foodweb zugreifen kann
 
@@ -182,7 +182,7 @@ Er wird definiert über vier Größen
   
   if(Y>1)
   {
-    stochMigration(nicheweb, y, rng1, rng1_T, migrationEventNumber);
+    stochMigration(nicheweb, stochastic, y, rng1, rng1_T, migrationEventNumber);
     gsl_vector_set(nicheweb.migrPara, 0 , gsl_vector_get(nicheweb.migrPara, 0)+tend1);
     printf("tau ist %f\n", gsl_vector_get(nicheweb.migrPara, 0));
     printf("mu ist %f\n", gsl_vector_get(nicheweb.migrPara, 1));
@@ -233,7 +233,7 @@ Er wird definiert über vier Größen
     tlast = t;
     if(t > gsl_vector_get(nicheweb.migrPara, 0)&& migrationEventNumber < Z)
     {
-      stochMigration(nicheweb, y, rng1, rng1_T, migrationEventNumber);
+      stochMigration(nicheweb, stochastic, y, rng1, rng1_T, migrationEventNumber);
       gsl_vector_set(nicheweb.migrPara, 0 , gsl_vector_get(nicheweb.migrPara, 0)+t);
       //printf("tau ist %f\n", gsl_vector_get(nicheweb.migrPara, 0));
       //printf("mu ist %f\n", gsl_vector_get(nicheweb.migrPara, 1));

@@ -150,7 +150,7 @@ int createOutputPatchwise(struct foodweb nicheweb, struct resource res, char* ai
 }
 
 
-int createOutputSpeciesNumber(struct foodweb nicheweb, struct resource res, char* aims, double SpeciesNumber[], int L)
+int createOutputSpeciesNumber(struct foodweb nicheweb, struct resource res, char* aims, double SpeciesNumber[][2], int L)
 {
   int i;
   
@@ -168,7 +168,14 @@ int createOutputSpeciesNumber(struct foodweb nicheweb, struct resource res, char
 
   for(i = 0; i<nicheweb.Z*L; i++)
   {
-    fprintf(SpeciesNumbers,"%5.1f\t",SpeciesNumber[i]);
+    fprintf(SpeciesNumbers,"%5.1f\t",SpeciesNumber[i][0]);
+  }
+	
+  fprintf(SpeciesNumbers,"\n");
+  
+  for(i = 0; i<nicheweb.Z*L; i++)
+  {
+    fprintf(SpeciesNumbers,"%5.3f\t",SpeciesNumber[i][1]);
   }
 	
   fprintf(SpeciesNumbers,"\n");
@@ -180,7 +187,7 @@ int createOutputSpeciesNumber(struct foodweb nicheweb, struct resource res, char
 
 
 
-int createOutputPatchlink(struct foodweb nicheweb, struct resource res, char* aims, double AllMu[], double AllNu[], int L)
+int createOutputPatchlink(struct foodweb nicheweb, struct resource res, char* aims, double AllMu[][2], double AllNu[][2], int L)
 {
   int i;
   
@@ -198,14 +205,28 @@ int createOutputPatchlink(struct foodweb nicheweb, struct resource res, char* ai
 
   for(i = 0; i<nicheweb.Z*L; i++)
   {
-    fprintf(Patchlink,"%5.1f\t",AllMu[i]);
+    fprintf(Patchlink,"%5.1f\t",AllMu[i][0]);
   }
 	
   fprintf(Patchlink,"\n");
   
   for(i = 0; i<nicheweb.Z*L; i++)
   {
-    fprintf(Patchlink,"%5.1f\t",AllNu[i]);
+    fprintf(Patchlink,"%5.3f\t",AllMu[i][1]);
+  }
+	
+  fprintf(Patchlink,"\n");
+  
+  for(i = 0; i<nicheweb.Z*L; i++)
+  {
+    fprintf(Patchlink,"%5.1f\t",AllNu[i][0]);
+  }
+	
+  fprintf(Patchlink,"\n");
+  
+  for(i = 0; i<nicheweb.Z*L; i++)
+  {
+    fprintf(Patchlink,"%5.3f\t",AllNu[i][1]);
   }
 	
   fprintf(Patchlink,"\n");

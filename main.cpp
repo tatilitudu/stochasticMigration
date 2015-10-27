@@ -84,7 +84,9 @@ int main(int argc, char** argv)
 	gsl_vector* fixpunkte	= gsl_vector_calloc(9);
  	
 
-	struct foodweb nicheweb	= {NULL, fixpunkte, NULL, NULL, NULL, NULL, 18, 3, 1, 5, 0, 0, -7., 0.0, 0, 1};		// Reihenfolge: network, fxpkt, migrPara, AllMus, AllNus, S, B, Rnum, Y, T, Tchoice, d, x, M, Z
+	struct foodweb nicheweb	= {NULL, fixpunkte, NULL, 18, 3, 1, 5, 0, 0, -7., 0.0, 0, 1};		// Reihenfolge: network, fxpkt, migrPara, AllMus, AllNus, S, B, Rnum, Y, T, Tchoice, d, x, M, Z
+	
+	struct migration stochastic = {NULL, NULL, NULL, NULL, NULL, NULL};
 	
 	struct resource res = {500.0, 0.0};											// Resource: Größe, Wachstum
 	
@@ -106,9 +108,12 @@ int main(int argc, char** argv)
 
 	printf("Z = %i\n",nicheweb.Z);
 	nicheweb.migrPara = gsl_vector_calloc(6); // Reihenfolge: tau, mu, nu, SpeciesNumber, momentanes t, ymigr	 
-	nicheweb.SpeciesNumbers = gsl_vector_calloc(L*nicheweb.Z);
-	nicheweb.AllMus = gsl_vector_calloc(L*nicheweb.Z);
-	nicheweb.AllNus = gsl_vector_calloc(L*nicheweb.Z);
+	stochastic.SpeciesNumbers = gsl_vector_calloc(L*nicheweb.Z);
+	stochastic.AllMus = gsl_vector_calloc(nicheweb.Z);
+	stochastic.AllNus = gsl_vector_calloc(nicheweb.Z);
+	stochastic.Biomass_SpeciesNumbers = gsl_vector_calloc(nicheweb.Z);
+	stochastic.Biomass_AllMus = gsl_vector_calloc(nicheweb.Z);
+	stochastic.Biomass_AllNus = gsl_vector_calloc(nicheweb.Z);
 	
 //--Zufallszahlengenerator initialisieren--------------------------------------------------------------------------------
 
@@ -167,9 +172,9 @@ int main(int argc, char** argv)
 	gsl_vector_set_zero(nicheweb.migrPara);
 	gsl_vector_set_zero(meanSquOfDataAll);
 	
-	double SpeciesNumber[L*nicheweb.Z]; 
-	double AllMu[L*nicheweb.Z];
-	double AllNu[L*nicheweb.Z];
+	double SpeciesNumber[L*nicheweb.Z][2]; 
+	double AllMu[L*nicheweb.Z][2];
+	double AllNu[L*nicheweb.Z][2];
 	
 	double ymigr = 0;
 	double mu = 0;
@@ -192,7 +197,7 @@ int main(int argc, char** argv)
 		printf("\nStarte Durchlauf L = %i\n", i);
 //--Starte Simulation-----------------------------------------------------------------------------------------------			
 		nicheweb.network = SetNicheNetwork(nicheweb, res, rng1, rng1_T);
-		populationFIN	 = EvolveNetwork(nicheweb, rng1, rng1_T);
+		populationFIN	 = EvolveNetwork(nicheweb, stochastic, rng1, rng1_T);
 			
 												
 		gsl_vector_memcpy(robustnesstemp, EvaluateRobustness(populationFIN, nicheweb, patchwise));	// Robustness Analyse
@@ -206,9 +211,13 @@ int main(int argc, char** argv)
 		ymigrtemp = gsl_vector_get(nicheweb.migrPara, 5);
 		for(int j= 0; j<nicheweb.Z; j++)
 		{
-		  AllMu[i*nicheweb.Z+j] = gsl_vector_get(nicheweb.AllMus, j);
-		  AllNu[i*nicheweb.Z+j] = gsl_vector_get(nicheweb.AllNus, j);
-		  SpeciesNumber[i*nicheweb.Z+j] = gsl_vector_get(nicheweb.SpeciesNumbers,j);
+		  AllMu[i*nicheweb.Z+j][0] = gsl_vector_get(stochastic.AllMus, j);
+		  AllNu[i*nicheweb.Z+j][0] = gsl_vector_get(stochastic.AllNus, j);
+		  SpeciesNumber[i*nicheweb.Z+j][0] = gsl_vector_get(stochastic.SpeciesNumbers,j);
+		  
+		  AllMu[i*nicheweb.Z+j][1] = gsl_vector_get(stochastic.Biomass_AllMus, j);
+		  AllNu[i*nicheweb.Z+j][1] = gsl_vector_get(stochastic.Biomass_AllNus, j);
+		  SpeciesNumber[i*nicheweb.Z+j][1] = gsl_vector_get(stochastic.Biomass_SpeciesNumbers,j);
 		}
 		//printf("SpeciesNumber ist %f\n",SpeciesNumber[i]);
 		ymigr += ymigrtemp;
@@ -258,7 +267,7 @@ int main(int argc, char** argv)
     
 	
 //--Daten patchweise abspeichern----------------------------------------------------------------------	
-	
+	printf("population ist %f\n",gsl_vector_get(stochastic.Biomass_AllMus,0));
      
      for(int l = 0 ; l< nicheweb.Y; l++)
      {
@@ -304,9 +313,12 @@ int main(int argc, char** argv)
 	
 
 	gsl_vector_free(nicheweb.migrPara);
-	gsl_vector_free(nicheweb.AllMus);
-	gsl_vector_free(nicheweb.AllNus);
-	gsl_vector_free(nicheweb.SpeciesNumbers);
+	gsl_vector_free(stochastic.AllMus);
+	gsl_vector_free(stochastic.AllNus);
+	gsl_vector_free(stochastic.SpeciesNumbers);
+	gsl_vector_free(stochastic.Biomass_AllMus);
+	gsl_vector_free(stochastic.Biomass_AllNus);
+	gsl_vector_free(stochastic.Biomass_SpeciesNumbers);
 	gsl_vector_free(populationFIN);
 	gsl_vector_free(robustness);	
 	gsl_vector_free(meanOfData);
