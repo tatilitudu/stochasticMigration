@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 		 }
 
 	printf("Z = %i\n",nicheweb.Z);
-	nicheweb.migrPara = gsl_vector_calloc(6); // Reihenfolge: tau, mu, nu, SpeciesNumber, momentanes t, ymigr	 
+	nicheweb.migrPara = gsl_vector_calloc(7); // Reihenfolge: tau, mu, nu, SpeciesNumber, momentanes t, ymigr, migrationEventNumber	 
 	stochastic.SpeciesNumbers = gsl_vector_calloc(L*nicheweb.Z);
 	stochastic.AllMus = gsl_vector_calloc(nicheweb.Z);
 	stochastic.AllNus = gsl_vector_calloc(nicheweb.Z);
@@ -149,6 +149,7 @@ int main(int argc, char** argv)
 	nicheweb.Tchoice = nicheweb.T;
 	nicheweb.T = 0;
 	nicheweb.d = nicheweb.d/10;
+	res.size = res.size/10;
 	//int len	= ((nicheweb.Rnum+nicheweb.S)*(nicheweb.S+nicheweb.Rnum)+1+nicheweb.Y*nicheweb.Y+1+(nicheweb.Rnum+nicheweb.S)+nicheweb.S);	// Länge des Rückabewerts
 
 	gsl_vector *populationFIN 	= gsl_vector_calloc((nicheweb.Rnum + nicheweb.S)*(nicheweb.Y)*5 + (nicheweb.S) + 3);				// Gleiche Länge wie Rückgabe von evolveNetwork

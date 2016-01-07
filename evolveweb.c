@@ -23,6 +23,7 @@
 #include "holling2.h"
 #include "evolveweb.h"
 #include "gillespie.h"
+#include "topology.h"
 
 #include <gsl/gsl_rng.h>					// random number generator functions
 #include <gsl/gsl_randist.h>				// random number distributions
@@ -40,6 +41,7 @@ gsl_vector* EvolveNetwork(struct foodweb nicheweb, struct migration stochastic, 
 	int Y 	     	= nicheweb.Y;
 	int Rnum 	= nicheweb.Rnum;
 	int Z 		= nicheweb.Z;
+	int Tchoice = nicheweb.Tchoice;
 	
 	double Rsize = gsl_vector_get(nicheweb.network, (Rnum+S)*(Rnum+S)+Y*Y+2);
 		
@@ -130,12 +132,12 @@ Er wird definiert über vier Größen
   double countsteps = 0;			// Schritte
 
   
-  printf("Z ist %i\n",Z);
+  //printf("Z ist %i\n",Z);
 //  int docheck 		= 0;			
 
 //--Erster Abschnitt bis t1--------------------------------------------------------------------------------------------------------------  
 	
-	printf("Starte Lösen der Populationsdynamik\n");	
+	printf("\nStarte Lösen der Populationsdynamik\n\n");	
 	
   while(t < tend1)					
   { 
@@ -180,34 +182,18 @@ Er wird definiert über vier Größen
   int SpeciesNumber;
   int migrationEventNumber = 0;
   
+  gsl_matrix *Dchoice    = SetTopology(Y, Tchoice);
+  
   if(Y>1)
   {
-    stochMigration(nicheweb, stochastic, y, rng1, rng1_T, migrationEventNumber);
+    stochMigration(nicheweb, stochastic, y, rng1, rng1_T, migrationEventNumber, Dchoice);
     gsl_vector_set(nicheweb.migrPara, 0 , gsl_vector_get(nicheweb.migrPara, 0)+tend1);
-    printf("tau ist %f\n", gsl_vector_get(nicheweb.migrPara, 0));
-    printf("mu ist %f\n", gsl_vector_get(nicheweb.migrPara, 1));
-    printf("nu ist %f\n", gsl_vector_get(nicheweb.migrPara, 2));
-    //     tau= migrationWerte[0];
-//     mu = migrationWerte[1];
-//     nu = migrationWerte[2];
-//     SpeciesNumber = migrationWerte[3];
   }
   else
   {
     printf("Es gibt nur ein Patch, sodass keine Migration stattfinden kann\n");
   }
-  //printf("SpeciesNumber in evolveweb: %i\n\n", SpeciesNumber);
-  //printf("tau ist: %f\n",tau);
-  //printf("mu ist: %f\n",mu);
-  //printf("nu ist: %f\n",nu);
-  
 
-  //printf("Z ist %i\n", Z);
-  
-  for(i = 0; i< 7; i++)
-  {
-    //printf("Das %i -t Element von migrPara ist %f\n", i, gsl_vector_get(nicheweb.migrPara, i));
-  }
   
   while(t < tend2)
   {
@@ -233,9 +219,9 @@ Er wird definiert über vier Größen
     tlast = t;
     if(t > gsl_vector_get(nicheweb.migrPara, 0)&& migrationEventNumber < Z)
     {
-      stochMigration(nicheweb, stochastic, y, rng1, rng1_T, migrationEventNumber);
+      stochMigration(nicheweb, stochastic, y, rng1, rng1_T, migrationEventNumber, Dchoice);
       gsl_vector_set(nicheweb.migrPara, 0 , gsl_vector_get(nicheweb.migrPara, 0)+t);
-      //printf("tau ist %f\n", gsl_vector_get(nicheweb.migrPara, 0));
+      printf("ydotmigr ist %f\n", gsl_vector_get(nicheweb.migrPara, 5));
       //printf("mu ist %f\n", gsl_vector_get(nicheweb.migrPara, 1));
       //printf("nu ist %f\n", gsl_vector_get(nicheweb.migrPara, 2));
       migrationEventNumber++;
@@ -262,6 +248,7 @@ Er wird definiert über vier Größen
     //testf2	= testf2*fixp2;
    
   }
+  gsl_vector_set(nicheweb.migrPara, 6, migrationEventNumber);
   printf("migrationEventNumber ist %i\n", migrationEventNumber);
   printf("Letztes Migrationsereignis zum Zeitpunkt %f\n", gsl_vector_get(nicheweb.migrPara, 0));
   printf("Es migrieren %f \n",gsl_vector_get(nicheweb.migrPara,5));
@@ -299,7 +286,8 @@ Er wird definiert über vier Größen
 	gsl_vector_free(ymax);
 	gsl_vector_free(ymin);
 	gsl_vector_free(yavg);
-
+	gsl_odeiv_step_free(s);
+	gsl_matrix_free(Dchoice);
  //	gsl_rng_free(rng1);
 
 	gsl_odeiv_control_free(c);

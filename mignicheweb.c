@@ -67,7 +67,7 @@ while(flag == 1)
 
 	flag = 0; 
 
-	NV 	= SetNicheValues(nicheweb, C, rng1, rng1_T);							// Nischenwerte		NOTIZ: In den gsl Objekten liegen floats!
+	SetNicheValues(nicheweb, C, rng1, rng1_T, NV);							// Nischenwerte		NOTIZ: In den gsl Objekten liegen floats!
 	A	= SetFeedingMatrix(nicheweb, NV, C, CRange);							// interaction matrix 
 
 	int links = CountLinks(A, (nicheweb.Rnum+nicheweb.S));	
@@ -134,12 +134,12 @@ Der Fressbereich wird mit einer Beta-Verteilung erwürfelt.
 Eine Spezies kann eine andere Spezies fressen, wenn der Nischenwert der Beute im Fressbereich des Räubers liegt.
 Rückgabewert: 3xS Matrix mit [0][S]: Nischenwert, [1][S]: Fressbereich, [2][S]: Fresszentrum.
 */
-gsl_matrix *SetNicheValues(struct foodweb nicheweb, double C, gsl_rng* rng1, const gsl_rng_type* rng_T){
+gsl_matrix *SetNicheValues(struct foodweb nicheweb, double C, gsl_rng* rng1, const gsl_rng_type* rng_T, gsl_matrix* NV){
 
 	int S = nicheweb.S;
 	//printf("\nStarte Berechnung der Nischenwerte für %i Spezies\n", S);
 
-	gsl_matrix *NV	= gsl_matrix_calloc(3, nicheweb.S);	
+	//gsl_matrix *NV	= gsl_matrix_calloc(3, nicheweb.S);	
  	gsl_vector *nv 	= gsl_vector_calloc(S); 
   
 	//printf("nischenwert allokation");
