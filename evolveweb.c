@@ -20,7 +20,7 @@
 	TL		   S: Trophische Level der Spezies zur Auswertung
 */
 #include "structs.h"
-#include "holling2.h"
+#include "holling2_festeMigrationsmenge.h"
 #include "evolveweb.h"
 #include "gillespie.h"
 #include "topology.h"
