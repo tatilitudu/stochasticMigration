@@ -47,15 +47,17 @@ gsl_vector* determineMeanSqu(gsl_vector* object, int length, gsl_vector* meanSqu
   
   gsl_vector_add(meanSqu, meanSqutemp);
   
+  gsl_vector_free(meanSqutemp);
+  
   return 0;
   
 }
   
 
 
-gsl_vector* determineStandardDeviation(int length, gsl_vector* meanOfData, gsl_vector* meanSquOfData, int L )
+gsl_vector* determineStandardDeviation(int length, gsl_vector* meanOfData, gsl_vector* meanSquOfData, int L, gsl_vector* standardDeviation)
 {
-  gsl_vector* standardDeviation = gsl_vector_calloc(length);
+  
   gsl_vector* meanOfDataSqu = gsl_vector_calloc(length);
   
   //printf("meanSquOfData ist oben %f\n", gsl_vector_get(meanSquOfData,3));
@@ -77,6 +79,8 @@ gsl_vector* determineStandardDeviation(int length, gsl_vector* meanOfData, gsl_v
 //     }
     gsl_vector_set(standardDeviation, i, sqrt(gsl_vector_get(meanSquOfData,i) - gsl_vector_get(meanOfDataSqu,i)));
   }
+  
+  gsl_vector_free(meanOfDataSqu);
   
   return standardDeviation;
   

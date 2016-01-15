@@ -20,7 +20,7 @@
 	TL		   S: Trophische Level der Spezies zur Auswertung
 */
 #include "structs.h"
-#include "holling2_festeMigrationsmenge.h"
+#include "holling2.h"
 #include "evolveweb.h"
 #include "gillespie.h"
 #include "topology.h"
@@ -33,7 +33,7 @@
 #include <gsl/gsl_odeiv.h>
 #include <gsl/gsl_errno.h>
 
-gsl_vector* EvolveNetwork(struct foodweb nicheweb, struct migration stochastic, gsl_rng* rng1, const gsl_rng_type* rng1_T)
+gsl_vector* EvolveNetwork(struct foodweb nicheweb, struct migration stochastic, gsl_rng* rng1, const gsl_rng_type* rng1_T, gsl_vector* result)
 {	
 	struct foodweb *params = &nicheweb; 									// Damit Holling2 auf das foodweb zugreifen kann
 
@@ -42,7 +42,7 @@ gsl_vector* EvolveNetwork(struct foodweb nicheweb, struct migration stochastic, 
 	int Rnum 	= nicheweb.Rnum;
 	int Z 		= nicheweb.Z;
 	int Tchoice = nicheweb.Tchoice;
-	
+	gsl_matrix *Dchoice	= gsl_matrix_calloc(Y,Y);
 	double Rsize = gsl_vector_get(nicheweb.network, (Rnum+S)*(Rnum+S)+Y*Y+2);
 		
 	double *y 	 = (double *)calloc((Rnum+S)*Y, sizeof(double));				// Ergebnis Array für den Lösungsalgorithmus
@@ -51,7 +51,6 @@ gsl_vector* EvolveNetwork(struct foodweb nicheweb, struct migration stochastic, 
 	int closezero= 1;			
 
 //-- Ergebnis Variablen-----------------------------------------------------------------------------------------------------------------------------------	
-	gsl_vector *result	= gsl_vector_calloc((Rnum+S)*Y*5 + 3 + S); 				// y[Simulation], y0, ymax, ymin, yavg, fixp, TL
 	gsl_vector *y0		= gsl_vector_calloc((Rnum+S)*Y);						// Startwerte der Populationsgrößen
 	gsl_vector *ymax	= gsl_vector_calloc((Rnum+S)*Y);						// Maximalwerte nach t2
 	gsl_vector *ymin	= gsl_vector_calloc((Rnum+S)*Y);						// Minimalwerte nach t2
@@ -177,12 +176,12 @@ Er wird definiert über vier Größen
 	//printf("t=%f\n", t);	
 
   //double migrationWerte[4];
-  double mu=0, nu=0, tau = 0;
+  //double mu=0, nu=0, tau = 0;
   double tlast = tend1;
-  int SpeciesNumber;
+  //int SpeciesNumber;
   int migrationEventNumber = 0;
   
-  gsl_matrix *Dchoice    = SetTopology(Y, Tchoice);
+  Dchoice    = SetTopology(Y, Tchoice, Dchoice);
   
   if(Y>1)
   {

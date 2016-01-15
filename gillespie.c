@@ -153,7 +153,7 @@ double* stochMigration(struct foodweb nicheweb, struct migration stochastic, con
     int SpeciesNumber;
     //r2 = (double)rand()/INT_MAX;
     //printf("r2 ist %f\n",r2);
-    int Choice = 0;
+    //int Choice = 0;
     SpeciesNumber = select_species_random(nicheweb, stochastic, rng1);
     gsl_vector_set(stochastic.SpeciesNumbers, migrationEventNumber, SpeciesNumber);
     
@@ -314,6 +314,9 @@ int select_species(struct foodweb nicheweb, struct migration stochastic, gsl_rng
   }
   
   gsl_vector_set(stochastic.Biomass_SpeciesNumbers, migrationEventNumber, gsl_vector_get(a,SpeciesNumber));
+  
+  gsl_vector_free(a);
+  gsl_vector_free(c);
   
   return SpeciesNumber;
   

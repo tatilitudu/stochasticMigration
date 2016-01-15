@@ -106,6 +106,9 @@ int main(int argc, char** argv)
 			return(0);		
 		 }
 
+	int length			= ((nicheweb.Rnum+nicheweb.S)*(nicheweb.S+nicheweb.Rnum)+1+nicheweb.Y*nicheweb.Y+1+(nicheweb.Rnum+nicheweb.S)+nicheweb.S);	// Länge des Rückabewerts
+	nicheweb.network = gsl_vector_calloc(length);
+	
 	printf("Z = %i\n",nicheweb.Z);
 	nicheweb.migrPara = gsl_vector_calloc(7); // Reihenfolge: tau, mu, nu, SpeciesNumber, momentanes t, ymigr, migrationEventNumber	 
 	stochastic.SpeciesNumbers = gsl_vector_calloc(L*nicheweb.Z);
@@ -145,7 +148,7 @@ int main(int argc, char** argv)
 	}
 	
 	//printf("test");
-//--Simulation---------------------------------------------------------------------------------------------------
+//--Initialisierungen---------------------------------------------------------------------------------------------------
 	nicheweb.Tchoice = nicheweb.T;
 	nicheweb.T = 0;
 	nicheweb.d = nicheweb.d/10;
@@ -154,11 +157,13 @@ int main(int argc, char** argv)
 
 	gsl_vector *populationFIN 	= gsl_vector_calloc((nicheweb.Rnum + nicheweb.S)*(nicheweb.Y)*5 + (nicheweb.S) + 3);				// Gleiche Länge wie Rückgabe von evolveNetwork
 	gsl_vector *robustness		= gsl_vector_calloc(63);
-
+	gsl_vector *resultEvolveWeb	= gsl_vector_calloc((nicheweb.Rnum+nicheweb.S)*nicheweb.Y*5 + 3 + nicheweb.S); 				// y[Simulation], y0, ymax, ymin, yavg, fixp, TL
+	gsl_vector *resultRobustness 	= gsl_vector_calloc(63);
+	gsl_matrix *D			= gsl_matrix_calloc(nicheweb.Y,nicheweb.Y);
+	
 	gsl_vector *robustnesstemp	= gsl_vector_calloc(63);
 	gsl_vector *meanSquOfDataAll 	= gsl_vector_calloc(63);
 	gsl_vector *meanSquOfDataAlltemp = gsl_vector_calloc(63);
-	
 	gsl_vector *standardDeviationAll = gsl_vector_calloc(63);
 	
 	gsl_vector *meanOfData	= gsl_vector_calloc((6*4+2)*nicheweb.Y);
@@ -184,6 +189,8 @@ int main(int argc, char** argv)
 	double ymigrSqu = 0;
 	double ymigrDeviation;
 
+//--Simulation---------------------------------------------------------------------------------------------------	
+	D    = SetTopology(nicheweb.Y, nicheweb.T, D);						// migration matrix
 	for(i = 0; i < L; i++)																							
 	 { 	
 // 		const gsl_rng_type *rng1_T;											// ****
@@ -197,11 +204,13 @@ int main(int argc, char** argv)
 		
 		printf("\nStarte Durchlauf L = %i\n", i);
 //--Starte Simulation-----------------------------------------------------------------------------------------------			
-		nicheweb.network = SetNicheNetwork(nicheweb, res, rng1, rng1_T);
-		populationFIN	 = EvolveNetwork(nicheweb, stochastic, rng1, rng1_T);
+		SetNicheNetwork(nicheweb, res, D, rng1, rng1_T);
+		//printf("erstes Element ist %f\n",gsl_vector_get(nicheweb.network,0));
+		gsl_vector_set_zero(resultEvolveWeb);
+		populationFIN	 = EvolveNetwork(nicheweb, stochastic, rng1, rng1_T, resultEvolveWeb);
 			
-												
-		gsl_vector_memcpy(robustnesstemp, EvaluateRobustness(populationFIN, nicheweb, patchwise));	// Robustness Analyse
+		gsl_vector_set_zero(resultRobustness);										
+		gsl_vector_memcpy(robustnesstemp, EvaluateRobustness(populationFIN, nicheweb, patchwise, resultRobustness));	// Robustness Analyse
 		
 		
 //--Standardabweichung für Mittelung vorbereiten-----------------------------------------------------------------------------------------		
@@ -243,8 +252,8 @@ int main(int argc, char** argv)
 	ymigrDeviation = sqrt(ymigrSqu - ymigr*ymigr);
 
 //-- Für patchweise Ausgabe-------------------------------------------------------------------------------------------
-	standardDeviation = determineStandardDeviation((6*4+2)*nicheweb.Y, meanOfData, meanSquOfData, L);
-	standardDeviationAll = determineStandardDeviation(63, robustness, meanSquOfDataAll, L);
+	standardDeviation = determineStandardDeviation((6*4+2)*nicheweb.Y, meanOfData, meanSquOfData, L, standardDeviation);
+	standardDeviationAll = determineStandardDeviation(63, robustness, meanSquOfDataAll, L, standardDeviationAll);
 	 //printf("der 3. Eintrag in standardDeviationAll ist %f\n", gsl_vector_get(standardDeviationAll,3));
 // 	 printf("S ist %f\n", gsl_vector_get(robustness,3));
 // 	 printf("Standardabweichung von S ist %f\n", gsl_vector_get(standardDeviationAll,3));
@@ -322,6 +331,7 @@ int main(int argc, char** argv)
 	gsl_vector_free(stochastic.Biomass_SpeciesNumbers);
 	gsl_vector_free(populationFIN);
 	gsl_vector_free(robustness);	
+	gsl_vector_free(robustnesstemp);
 	gsl_vector_free(meanOfData);
 	gsl_vector_free(meanOfDatatemp);
 	gsl_vector_free(meanSquOfData);

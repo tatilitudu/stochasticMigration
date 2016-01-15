@@ -52,7 +52,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	int Y 	 	= nicheweb->Y;
 	int Rnum	= nicheweb->Rnum;
 	double d  	= nicheweb->d;
-	int Z 		= nicheweb->Z;
+	//int Z 		= nicheweb->Z;
 	double dij 	= pow(10, d);
 
 	double nu,mu, tau;
@@ -62,10 +62,10 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	tau =  gsl_vector_get(nicheweb->migrPara,0);
 	
 	mu = gsl_vector_get(nicheweb->migrPara,1);
-	if((int)nu!=0)
-	{
+	//if((int)nu!=0)
+	//{
 	  //printf("nu ist nicht null sondern %f\n",nu);
-	}
+	//}
 	
 	nu = gsl_vector_get(nicheweb->migrPara,2);
 	
@@ -103,7 +103,7 @@ int Holling2(double t, const double y[], double ydot[], void *params){
 	    //printf("Setze Link für gewünschte Migration\n");
 	    //printf("t oben %f\n",t);
 	    gsl_matrix_set(EDmat, nu, mu, 1.);
-	    int m;
+	    //int m;
 // 	    for(l = 0; l< Y;l++)
 // 	    {
 // 		for(m=0;m<Y;m++)
