@@ -298,7 +298,7 @@ for(i=0; i< Rnum; i++) gsl_matrix_set(mas, 1, i, 0);	// Ressource hat TL = 0;
 
 				  //Spezies hat trophisches Level, das genau 1 kleiner ist und ist auch Beute laut A
 
-				  if((gsl_matrix_get(mas, 1, j) == (tlgesucht-1)) && (gsl_matrix_get(A, i-Rnum, j-Rnum)!=0))		
+				  if((gsl_matrix_get(mas, 1, j) == (tlgesucht-1)) && (gsl_matrix_get(A, i, j)!=0))		
 					  
 					  {
 						gsl_matrix_set(mas, 1, i, tlgesucht);
